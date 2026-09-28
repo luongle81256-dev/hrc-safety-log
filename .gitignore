@@ -50,3 +50,6 @@ Thumbs.db
 .idea/
 .vscode/*
 !.vscode/extensions.json
+
+# File khóa tạm của Word/PowerPoint khi đang mở tài liệu
+~$*
