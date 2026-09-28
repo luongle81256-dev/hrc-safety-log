@@ -82,6 +82,12 @@ cd /d D:\Blockchain\Report_CK
 - Bản cài sẵn chạy ngầm (service) **chỉ nhận thư từ chính laptop**, nên phải tắt nó (`net stop`), rồi chạy bản cấu hình `mosquitto.native.conf`, **nhận thư từ cả mạng Wi-Fi**.
 - Phải là cmd Admin vì tắt service cần quyền quản trị.
 
+> ⚠️ **Chỉ được có MỘT Mosquitto.** Nếu service chạy ngầm còn bật (hoặc tự bật lại), ESP32 vào Mosquitto của bạn còn backend vào service. Hai bên không thấy nhau, dashboard báo **OFFLINE** dù ESP32 đã kết nối. Kiểm tra trong cmd Admin:
+> ```bat
+> sc query mosquitto
+> ```
+> Dòng `STATE` phải là **`1  STOPPED`**. Nếu là `RUNNING`, chạy `net stop mosquitto` rồi kiểm tra lại.
+
 **✅ Đúng khi:** thấy `Opening ipv4 listen socket on port 1883`. Vài giây sau khi ESP32 có điện, sẽ thấy thêm:
 ```
 New client connected from 172.20.10.10 as hrc-esp32-1
@@ -292,6 +298,8 @@ cd /d D:\Blockchain\Report_CK\iot_code\firmware
 | Còi kêu liên tục, `estop=1(BUTTON)` | Nút E-Stop đang ở trạng thái nhấn / đấu nhầm tiếp điểm NC | Xoay nút nhả ra; dùng khối tiếp điểm **NO** (xanh lá, số 13–14) |
 | Servo không quay, `LINK_LOST` | Bản firmware có mạng mà chưa nối Mosquitto | Làm B1–B2. Muốn thử servo không cần mạng: nạp `-e esp32dev_bench` |
 | Mosquitto chạy nhưng **không bao giờ** hiện `New client connected … hrc-esp32-1` | **Hotspot iPhone tự chuyển sang 5 GHz** sau khi tắt/bật lại (kiểm tra: `netsh wlan show interfaces`, dòng *Band*) | iPhone: Điểm truy cập cá nhân → bật **"Tối đa hóa tính tương thích"**; rút USB ESP32 cắm lại |
+| ESP32 đã `New client connected`, backend `Robot 1 ONLINE` **không hiện**, dashboard **OFFLINE / Chờ telemetry** | **2 Mosquitto cùng chạy**: service Windows tự bật lại, backend vào nhầm service | cmd Admin: `net stop mosquitto`, `sc query mosquitto` phải `STOPPED`. Backend tự kết nối lại sau vài giây |
+| Dashboard OFFLINE trong khoảng 20–30 giây đầu sau khi ESP32 có điện | ESP32 **chưa lấy được giờ chuẩn** (NTP); chưa có giờ thì không gửi dữ liệu | Chờ thêm; hotspot phải có 4G |
 | Mosquitto báo `Only one usage of each socket address` | Đã có Mosquitto khác giữ cổng 1883 (service chưa tắt, hoặc còn cửa sổ Mosquitto cũ) | `net stop mosquitto` (cmd Admin), đóng cửa sổ Mosquitto cũ, chạy lại |
 | Servo không quay, `BOOT` / WARNING | Có vật trong vùng 10 cm trước cảm biến (dây, servo, mép bàn) | Dọn trống; kê cảm biến cao lên, hướng thẳng ra khoảng trống |
 | Dashboard báo *"Không tìm thấy MetaMask"* | Trình duyệt chưa cài MetaMask | Cài extension (A5), mở dashboard trên đúng trình duyệt đó |
