@@ -12,9 +12,10 @@ from hrc_common.ssm import classify_zone, protective_distance_mm
 
 def test_formula_demo_profile():
     p = ssm_params("demo_tabletop")
-    # 300*(100+150)/1000 = 75 ; 150*100/1000 = 15 ; +15+20+5+30 = 160
-    assert protective_distance_mm(150, p) == 160
-    assert protective_distance_mm(0, p) == 145
+    # HC-SR04 (TR = 150 ms): 300*(150+150)/1000 = 90 ; 150*150/1000 = 22.5 ; ceil(112.5) = 113 ; +15+20+5+30 = 183
+    # (nhánh main, VL53L0X, TR = 100 ms: 160)
+    assert protective_distance_mm(150, p) == 183
+    assert protective_distance_mm(0, p) == 160
 
 
 def test_rounds_up():

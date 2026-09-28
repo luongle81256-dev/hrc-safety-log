@@ -171,6 +171,12 @@ int main() {
       nvs = MemNvs();
       seq.reset(new SeqAllocator(nvs));
       puts("OK");
+    } else if (!strcmp(op, "US")) {  // US <echo_started> <echo_ended> <echo_us> -> "<distance_mm> <sensor_ok>"
+      int started = 0, ended = 0;
+      unsigned echo_us = 0;
+      sscanf(rest, "%d %d %u", &started, &ended, &echo_us);
+      const RangeSample r = ultrasonic_range(started != 0, ended != 0, echo_us);
+      printf("%u %d\n", (unsigned)r.distance_mm, (int)r.sensor_ok);
     } else if (!strcmp(op, "SEQ")) {
       printf("%" PRIu64 "\n", seq->next());
     } else {

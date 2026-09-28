@@ -21,6 +21,19 @@ const char* trip_reason_name(TripReason r) {
 }
 
 // =============================================================================
+// Cảm biến siêu âm HC-SR04
+// =============================================================================
+RangeSample ultrasonic_range(bool echo_started, bool echo_ended, uint32_t echo_us) {
+  RangeSample r;  // gán từng trường: core Arduino 2.x biên dịch gnu++11
+  r.distance_mm = TOF_OUT_OF_RANGE_MM;
+  r.sensor_ok = echo_started;
+  if (!echo_started || !echo_ended) return r;
+  const uint64_t mm = (uint64_t)echo_us * SOUND_SPEED_MPS / 2000u;
+  if (mm <= HRC_SSM_DISTANCE_VALID_MAX_MM) r.distance_mm = (uint32_t)mm;
+  return r;
+}
+
+// =============================================================================
 // Fast lane
 // =============================================================================
 FastLane::FastLane(bool locked_at_boot) : locked_(locked_at_boot) {}

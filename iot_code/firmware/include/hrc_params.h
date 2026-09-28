@@ -5,7 +5,7 @@
 #pragma once
 #include <stdint.h>
 
-#define HRC_CONFIG_HASH "40037d15ebf0e786"   // so khớp với backend để phát hiện lệch cấu hình
+#define HRC_CONFIG_HASH "426c922f7819b488"   // so khớp với backend để phát hiện lệch cấu hình
 #define HRC_SSM_PROFILE "demo_tabletop"
 
 // ---- [system] ----
@@ -33,7 +33,7 @@
 
 // ---- [ssm.profiles.demo_tabletop] ----
 #define HRC_SSM_V_HUMAN_MMPS 300u
-#define HRC_SSM_T_REACT_MS 100u
+#define HRC_SSM_T_REACT_MS 150u
 #define HRC_SSM_T_STOP_MS 150u
 #define HRC_SSM_S_STOP_MM 15u
 #define HRC_SSM_C_INTRUSION_MM 20u

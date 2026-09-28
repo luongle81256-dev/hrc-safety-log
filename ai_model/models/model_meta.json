@@ -1,7 +1,7 @@
 {
-  "created_at": "2026-09-24T17:18:35+00:00",
-  "config_hash": "40037d15ebf0e786",
-  "feature_fingerprint": "7e15cd9c7f0658a2",
+  "created_at": "2026-09-28T09:08:40+00:00",
+  "config_hash": "426c922f7819b488",
+  "feature_fingerprint": "801cd353f44a1a2c",
   "window": 20,
   "feature_names": [
     "d_last",

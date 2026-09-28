@@ -1,7 +1,7 @@
 // =============================================================================
 // HRC Safety Log – firmware ESP32 DevKit V1
 //
-// FAST LANE (task "safety", core 1, ưu tiên cao): đọc ToF -> SSM -> NGẮT RELAY ngay, không chờ mạng.
+// FAST LANE (task "safety", core 1, ưu tiên cao): đo siêu âm HC-SR04 -> SSM -> NGẮT RELAY ngay, không chờ mạng.
 // TRUST LANE (task "net", core 0): WiFi, NTP, MQTT, telemetry/heartbeat có ký HMAC, nhận LOCK/UNLOCK có ký.
 // Hai task chỉ trao đổi qua vài biến nguyên tử + 1 snapshot có mutex => mạng chậm/treo KHÔNG làm chậm fast lane.
 //
@@ -9,15 +9,13 @@
 //   - Relay chỉ HÚT khi được phép chạy; ESP32 reset/treo/mất nguồn => relay nhả => servo mất nguồn.
 //   - Khởi động ở trạng thái NGẮT; LOCKED lưu NVS nên reset không gỡ được khóa.
 //   - Mất MQTT > HRC_FAILSAFE_TIMEOUT_MS => ngắt (tắt bằng HRC_REQUIRE_LINK=0 khi thử trên bàn không có mạng).
-//   - ToF timeout => coi như vật ở sát => ngắt. Task an toàn treo > 5 s => watchdog reset chip.
+//   - Cảm biến không phản hồi (ECHO không lên) => coi như vật ở sát => ngắt. Task an toàn treo > 5 s => watchdog reset.
 // =============================================================================
 #include <Arduino.h>
 #include <ESP32Servo.h>
 #include <Preferences.h>
 #include <PubSubClient.h>
-#include <VL53L0X.h>
 #include <WiFi.h>
-#include <Wire.h>
 #include <esp_task_wdt.h>
 #include <sys/time.h>
 
@@ -69,10 +67,11 @@ static volatile int8_t g_lock_request = -1;  // -1: không; 0: UNLOCK; 1: LOCK (
 static volatile uint32_t g_v_cmd = HRC_SSM_V_ROBOT_NOMINAL_MMPS;  // đổi bằng lệnh Serial "v <mm/s>" để demo
 static uint64_t g_last_nonce = 0;
 
-// Thống kê độ trễ fast lane (µs) – đo từ lúc có mẫu ToF tới lúc đã ghi chân relay
+// Thống kê độ trễ fast lane (µs) – đo từ lúc có mẫu cảm biến tới lúc đã ghi chân relay
 static volatile uint32_t g_lat_max_us = 0, g_lat_count = 0;
 static volatile uint64_t g_lat_sum_us = 0;
-static volatile uint32_t g_tof_period_sum_us = 0, g_tof_period_n = 0;
+static volatile uint32_t g_period_sum_us = 0, g_period_n = 0;  // chu kỳ lấy mẫu thật
+static volatile uint32_t g_meas_max_us = 0;                     // thời gian 1 lần đo (chờ tiếng vọng) lớn nhất
 
 // ---------------- Edge AI (autoencoder INT8) – CHỈ cảnh báo sớm, KHÔNG nằm trong vòng an toàn ----------------
 struct EdgeRing {
@@ -86,7 +85,6 @@ static EdgeResult g_edge_last{0.0f, false};
 static uint32_t g_edge_runs = 0, g_edge_anomalies = 0, g_edge_us_max = 0;
 static uint64_t g_edge_us_sum = 0;
 
-static VL53L0X g_tof;
 static Servo g_servo;
 static WiFiClient g_net;
 static PubSubClient g_mqtt(g_net);
@@ -124,29 +122,44 @@ static void set_leds(const FastLaneOutput& o, uint32_t now_ms) {
 // =============================================================================
 // FAST LANE
 // =============================================================================
-static bool tof_begin() {
-  digitalWrite(PIN_TOF_XSHUT, LOW);  // reset cứng cảm biến
-  delay(10);
-  digitalWrite(PIN_TOF_XSHUT, HIGH);
-  delay(10);
-  g_tof.setTimeout(100);
-  if (!g_tof.init()) return false;
-  g_tof.setMeasurementTimingBudget(33000);  // ~33 ms/mẫu (GIẢ ĐỊNH – đo lại chu kỳ thật bằng lệnh "stats")
-  g_tof.startContinuous();
-  return true;
+// 1 lần đo HC-SR04: xung TRIG 10 µs -> đo độ rộng xung ECHO. Chờ bận (busy-wait) có giới hạn thời gian:
+// tối đa ~US_BUSY_TIMEOUT_US + US_START_TIMEOUT_US + US_ECHO_TIMEOUT_US, luôn < watchdog.
+static RangeSample us_measure() {
+  uint32_t t = micros();
+  while (digitalRead(PIN_US_ECHO) == HIGH) {  // lần đo trước chưa kết thúc (vài module rẻ giữ ECHO lâu)
+    if (micros() - t > US_BUSY_TIMEOUT_US) return ultrasonic_range(false, false, 0);
+  }
+  digitalWrite(PIN_US_TRIG, LOW);
+  delayMicroseconds(2);
+  digitalWrite(PIN_US_TRIG, HIGH);
+  delayMicroseconds(10);
+  digitalWrite(PIN_US_TRIG, LOW);
+  t = micros();
+  while (digitalRead(PIN_US_ECHO) == LOW) {  // module phát 8 xung 40 kHz rồi mới kéo ECHO lên
+    if (micros() - t > US_START_TIMEOUT_US) return ultrasonic_range(false, false, 0);
+  }
+  const uint32_t rise = micros();
+  while (digitalRead(PIN_US_ECHO) == HIGH) {
+    if (micros() - rise > US_ECHO_TIMEOUT_US) return ultrasonic_range(true, false, 0);
+  }
+  return ultrasonic_range(true, true, micros() - rise);
 }
 
 static void safety_task(void*) {
   esp_task_wdt_add(nullptr);  // treo > timeout watchdog => reset chip => relay nhả
   float angle = 90.0f;
   int dir = 1;
-  uint32_t last_us = micros(), prev_sample_us = 0, consecutive_timeouts = 0;
+  uint32_t last_us = micros(), prev_sample_us = 0, consecutive_faults = 0;
+  TickType_t wake = xTaskGetTickCount();
   for (;;) {
     esp_task_wdt_reset();
-    const uint16_t raw = g_tof.readRangeContinuousMillimeters();  // chặn tới khi có mẫu mới
+    vTaskDelayUntil(&wake, pdMS_TO_TICKS(US_PERIOD_MS));  // nhịp đo đều 60 ms (nhường CPU cho loop()/Serial)
+    const uint32_t tm = micros();
+    const RangeSample rs = us_measure();
     const uint32_t t0 = micros();
-    const bool sensor_ok = !g_tof.timeoutOccurred() && raw != 65535;
-    const uint32_t d = raw >= TOF_OUT_OF_RANGE_MM ? TOF_OUT_OF_RANGE_MM : raw;
+    if (t0 - tm > g_meas_max_us) g_meas_max_us = t0 - tm;
+    const bool sensor_ok = rs.sensor_ok;
+    const uint32_t d = rs.distance_mm;
 
     const int8_t req = g_lock_request;
     if (req >= 0) {
@@ -164,8 +177,8 @@ static void safety_task(void*) {
     g_lat_count++;
     if (lat > g_lat_max_us) g_lat_max_us = lat;
     if (prev_sample_us) {
-      g_tof_period_sum_us += t0 - prev_sample_us;
-      g_tof_period_n++;
+      g_period_sum_us += t0 - prev_sample_us;
+      g_period_n++;
     }
     prev_sample_us = t0;
     if (o.tripped_now) {
@@ -195,12 +208,10 @@ static void safety_task(void*) {
     g_snap.reason = o.reason;
     xSemaphoreGive(g_mtx);
 
-    // ToF treo nhiều lần liên tiếp => reset cứng cảm biến (relay đã ngắt từ trước)
-    consecutive_timeouts = sensor_ok ? 0 : consecutive_timeouts + 1;
-    if (consecutive_timeouts >= 5) {
-      Serial.println("[TOF] timeout liên tiếp – khởi động lại cảm biến");
-      tof_begin();
-      consecutive_timeouts = 0;
+    // Cảm biến lỗi liên tiếp => báo 1 lần (HC-SR04 không có chân reset; relay đã ngắt từ mẫu lỗi đầu tiên)
+    consecutive_faults = sensor_ok ? 0 : consecutive_faults + 1;
+    if (consecutive_faults == 5) {
+      Serial.println("[US] HC-SR04 không phản hồi liên tiếp – kiểm tra dây TRIG/ECHO, nguồn 5V, cầu chia áp");
     }
   }
 }
@@ -324,7 +335,7 @@ static void net_task(void*) {
       connected_at = now;
       g_link_ok = true;
     } else if (HRC_REQUIRE_LINK && now - connected_at > HRC_FAILSAFE_TIMEOUT_MS) {
-      g_link_ok = false;  // fast lane sẽ ngắt relay ở mẫu ToF kế tiếp
+      g_link_ok = false;  // fast lane sẽ ngắt relay ở mẫu cảm biến kế tiếp
     }
 
     if ((int32_t)(now - next_tel) >= 0) {
@@ -352,7 +363,9 @@ void setup() {
   pinMode(PIN_LED_YELLOW, OUTPUT);
   pinMode(PIN_LED_RED, OUTPUT);
   pinMode(PIN_BTN_ESTOP, INPUT_PULLUP);
-  pinMode(PIN_TOF_XSHUT, OUTPUT);
+  pinMode(PIN_US_TRIG, OUTPUT);
+  digitalWrite(PIN_US_TRIG, LOW);
+  pinMode(PIN_US_ECHO, INPUT);
   Serial.begin(115200);
   delay(200);
   Serial.printf("\n=== HRC Safety Log – robot %u, config %s, profile %s ===\n", (unsigned)HRC_ROBOT_ID,
@@ -378,9 +391,12 @@ void setup() {
   snprintf(g_topic_cmd, sizeof(g_topic_cmd), HRC_TOPIC_CMD_FMT, (unsigned)HRC_ROBOT_ID);
   snprintf(g_topic_hb, sizeof(g_topic_hb), HRC_TOPIC_HEARTBEAT_FMT, (unsigned)HRC_ROBOT_ID);
 
-  Wire.begin(PIN_I2C_SDA, PIN_I2C_SCL);
-  Wire.setClock(400000);
-  if (!tof_begin()) Serial.println("[TOF] KHÔNG khởi tạo được VL53L0X – fast lane sẽ ngắt relay (SENSOR)");
+  const RangeSample first = us_measure();
+  if (first.sensor_ok) {
+    Serial.printf("[OK] HC-SR04 phản hồi, khoảng cách đầu tiên: %lu mm\n", (unsigned long)first.distance_mm);
+  } else {
+    Serial.println("[US] HC-SR04 KHÔNG phản hồi – fast lane sẽ ngắt relay (SENSOR). Kiểm tra dây/nguồn/chia áp");
+  }
 
   ESP32PWM::allocateTimer(0);
   g_servo.setPeriodHertz(50);
@@ -409,10 +425,11 @@ void loop() {
       Serial.printf("[CMD] tốc độ lệnh = %lu mm/s (giới hạn %u)\n", (unsigned long)g_v_cmd,
                     (unsigned)HRC_SSM_V_ROBOT_LIMIT_MMPS);
     } else if (strcmp(line, "stats") == 0) {
-      const uint32_t cnt = g_lat_count ? g_lat_count : 1, pn = g_tof_period_n ? g_tof_period_n : 1;
-      Serial.printf("STATS,samples=%lu,lat_mean_us=%lu,lat_max_us=%lu,tof_period_us=%lu\n",
+      const uint32_t cnt = g_lat_count ? g_lat_count : 1, pn = g_period_n ? g_period_n : 1;
+      // Tên trường "tof_period_us" giữ nguyên để scripts/measure_latency.py đọc được (= chu kỳ lấy mẫu cảm biến)
+      Serial.printf("STATS,samples=%lu,lat_mean_us=%lu,lat_max_us=%lu,tof_period_us=%lu,meas_max_us=%lu\n",
                     (unsigned long)g_lat_count, (unsigned long)(g_lat_sum_us / cnt), (unsigned long)g_lat_max_us,
-                    (unsigned long)(g_tof_period_sum_us / pn));
+                    (unsigned long)(g_period_sum_us / pn), (unsigned long)g_meas_max_us);
       const uint32_t er = g_edge_runs ? g_edge_runs : 1;
       Serial.printf("EDGESTATS,runs=%lu,us_mean=%lu,us_max=%lu,anomalies=%lu,last_err=%.3f\n",
                     (unsigned long)g_edge_runs, (unsigned long)(g_edge_us_sum / er), (unsigned long)g_edge_us_max,

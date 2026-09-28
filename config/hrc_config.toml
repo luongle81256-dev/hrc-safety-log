@@ -63,24 +63,24 @@ DANGER  = 2
 [ssm]
 active_profile = "demo_tabletop"
 
-# Profile cho mô hình thu nhỏ trên bàn (servo SG90 + VL53L0X). ĐANG DÙNG.
-# Mọi giá trị là GIẢ ĐỊNH cho mô hình; TR, TS, SS phải ĐO LẠI ở Phase 5.
+# Profile cho mô hình thu nhỏ trên bàn (servo SG90 + cảm biến siêu âm HC-SR04). ĐANG DÙNG.
+# Mọi giá trị là GIẢ ĐỊNH cho mô hình; TR, TS, SS phải ĐO LẠI bằng scripts/measure_latency.py.
 [ssm.profiles.demo_tabletop]
 v_human_mmps       = 300   # giả định: tay/vật cản tiến lại gần trên mặt bàn
-t_react_ms         = 100   # giả định: ToF ~33 ms (timing budget mặc định, kiểm tra datasheet ST VL53L0X) + vòng lặp + xử lý
+t_react_ms         = 150   # giả định: HC-SR04 chu kỳ 60 ms + chờ tiếng vọng (~7 ms ở 1,2 m) + vòng lặp + xử lý (nhánh main/VL53L0X: 100)
 t_stop_ms          = 150   # giả định: relay nhả + servo dừng; ĐO ở Phase 5
 s_stop_mm          = 15    # giả định: ~ vR_max*TS/2 = 200*0.15/2
-c_intrusion_mm     = 20    # giả định: ToF đo 1 điểm, không có "detection capability" như rèm sáng
+c_intrusion_mm     = 20    # giả định: cảm biến đo 1 hướng, không có "detection capability" như rèm sáng
 z_robot_mm         = 5     # giả định: sai số vị trí servo SG90
-z_sensor_mm        = 30    # giả định: sai số VL53L0X cỡ vài % ở ~1 m (kiểm tra datasheet ST)
+z_sensor_mm        = 30    # giả định: HC-SR04 ~±3 mm + sai lệch theo nhiệt độ ~0,17 %/°C (~20 mm ở 1,2 m, lệch 10 °C)
 warning_margin_mm  = 150
 v_robot_nominal_mmps = 150 # tốc độ vận hành bình thường của "tay robot"
 v_robot_limit_mmps   = 250 # ngưỡng vượt tốc (xem ghi chú ở profile iso_reference)
-distance_valid_min_mm = 30   # dưới ngưỡng này coi là đo lỗi/che cảm biến
-distance_valid_max_mm = 1200 # giả định: tầm đo tin cậy chế độ mặc định VL53L0X (kiểm tra datasheet)
+distance_valid_min_mm = 30   # dưới ngưỡng này coi là đo lỗi/che cảm biến (HC-SR04 vùng mù ~20–30 mm)
+distance_valid_max_mm = 1200 # tầm dùng cho mô hình bàn (HC-SR04 đo tới ~4 m; xa hơn 1200 mm => báo "ngoài tầm" 8190)
 
 # Profile tham chiếu tiêu chuẩn – CHỈ dùng để so sánh trong báo cáo.
-# Không chạy được trên mô hình bàn vì S vượt tầm đo của VL53L0X.
+# Không chạy được trên mô hình bàn vì S vượt tầm đo dùng cho mô hình bàn.
 [ssm.profiles.iso_reference]
 v_human_mmps       = 1600  # ISO 13855: 1600 mm/s khi đi bộ (2000 mm/s cho tay khi S <= 500 mm) – CẦN KIỂM TRA điều khoản
 t_react_ms         = 100   # giả định – phụ thuộc hệ thống điều khiển cụ thể

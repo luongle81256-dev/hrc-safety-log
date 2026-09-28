@@ -1,6 +1,6 @@
 {
   "_note": "TỰ SINH từ config/hrc_config.toml bởi scripts/gen_config.py – KHÔNG SỬA TAY",
-  "configHash": "40037d15ebf0e786",
+  "configHash": "426c922f7819b488",
   "robotIds": [
     1
   ],

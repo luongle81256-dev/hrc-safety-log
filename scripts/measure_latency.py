@@ -1,7 +1,7 @@
 """NGHIỆM THU PHASE 5 (cần phần cứng): đo độ trễ fast lane "phát hiện -> ngắt relay" trên ESP32 thật.
 
 Firmware in mỗi lần ngắt:   LAT,<millis>,<µs từ lúc có mẫu ToF tới lúc đã ghi chân relay>,<distance_mm>,<lý do>
-và khi nhận lệnh "stats":   STATS,samples=..,lat_mean_us=..,lat_max_us=..,tof_period_us=..
+và khi nhận lệnh "stats":   STATS,samples=..,lat_mean_us=..,lat_max_us=..,tof_period_us=..[,meas_max_us=..]
 
 Độ trễ phát hiện TỆ NHẤT (ước lượng) = chu kỳ ToF (mẫu vừa lỡ) + xử lý (đo được) + thời gian nhả relay (datasheet).
 Trong lúc chạy: đưa tay/vật vào vùng nguy hiểm nhiều lần, thử cả nút E-Stop, gõ "v 400" để thử vượt tốc.
@@ -57,12 +57,17 @@ class Report:
         if self.stats:
             period_ms = self.stats.get("tof_period_us", 0) / 1000
             proc_ms = self.stats.get("lat_max_us", 0) / 1000
+            from hrc_common.config import ssm_params
+
             out += [f" Tất cả mẫu        : {self.stats.get('samples', 0)} mẫu, xử lý TB "
                     f"{self.stats.get('lat_mean_us', 0)} µs, max {self.stats.get('lat_max_us', 0)} µs",
-                    f" Chu kỳ ToF        : {period_ms:.1f} ms",
-                    f" TỆ NHẤT (ước lượng): {period_ms:.1f} (ToF) + {proc_ms:.2f} (xử lý) + "
+                    f" Chu kỳ cảm biến   : {period_ms:.1f} ms"]
+            if "meas_max_us" in self.stats:  # HC-SR04: thời gian 1 lần đo (chờ tiếng vọng) lớn nhất
+                out.append(f" Đo 1 lần (max)    : {self.stats['meas_max_us'] / 1000:.1f} ms (chờ tiếng vọng, đã nằm trong chu kỳ)")
+            out += [f" TỆ NHẤT (ước lượng): {period_ms:.1f} (cảm biến) + {proc_ms:.2f} (xử lý) + "
                     f"{RELAY_RELEASE_MS_ASSUMED:.0f} (relay, giả định) = {period_ms + proc_ms + RELAY_RELEASE_MS_ASSUMED:.1f} ms",
-                    " So với giả định TR = 100 ms trong config/hrc_config.toml -> cập nhật t_react_ms nếu cần"]
+                    f" So với giả định TR = {ssm_params().t_react_ms} ms trong config/hrc_config.toml "
+                    "-> cập nhật t_react_ms nếu cần"]
         if self.edge_stats:
             es = self.edge_stats
             out += ["-" * 64, " EDGE AI INT8 TRÊN ESP32 (đặc trưng + autoencoder, chạy ở core 0, 10 Hz)",

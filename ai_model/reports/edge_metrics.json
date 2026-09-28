@@ -15,7 +15,7 @@
       "false_alarm_rate": 0.01069756251041069,
       "threshold": 1.163142204284668,
       "file_bytes": 53130,
-      "host_us_per_sample": 7.032900000012887,
+      "host_us_per_sample": 0.298099999781698,
       "recall_by_type": {
         "INTRUSION": 0.9873049457815393,
         "OVERSPEED": 0.9666666666666667,
@@ -31,7 +31,7 @@
       "false_alarm_rate": 0.01069756251041069,
       "threshold": 1.163142442703247,
       "file_bytes": 7560,
-      "host_us_per_sample": 4.996600000595208,
+      "host_us_per_sample": 5.077399997389875,
       "recall_by_type": {
         "INTRUSION": 0.9873049457815393,
         "OVERSPEED": 0.9666666666666667,
@@ -47,7 +47,7 @@
       "false_alarm_rate": 0.010660546723177435,
       "threshold": 1.1856986284255981,
       "file_bytes": 6952,
-      "host_us_per_sample": 5.47539999934088,
+      "host_us_per_sample": 5.180200001632329,
       "recall_by_type": {
         "INTRUSION": 0.9873049457815393,
         "OVERSPEED": 0.9666666666666667,

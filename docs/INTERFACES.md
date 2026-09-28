@@ -39,7 +39,7 @@
 | `robot_id` | Mã robot (0..2^32−1), phải có trong `[system].robot_ids` và trùng `{robot_id}` trên topic |
 | `seq` | Tăng **ngặt** theo từng robot, không lặp, kể cả sau khi reset (mục 6). Backend từ chối `seq <= seq cuối` |
 | `ts_ms` | **Unix epoch mili-giây** (ESP32 đồng bộ NTP khi khởi động, xem mục 6) |
-| `distance_mm` | Khoảng cách ToF đo được |
+| `distance_mm` | Khoảng cách cảm biến đo được (8190 = không thấy vật / ngoài tầm) |
 | `v_robot_mmps` | Độ lớn tốc độ robot hướng về phía người |
 | `zone` | 0 = SAFE, 1 = WARNING, 2 = DANGER (ESP32 tự tính SSM) |
 | `estop` | 1 nếu relay E-Stop đang ngắt |

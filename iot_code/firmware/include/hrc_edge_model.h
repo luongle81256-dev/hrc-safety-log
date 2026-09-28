@@ -5,7 +5,7 @@
 #pragma once
 #include <stdint.h>
 
-#define HRC_EDGE_FEATURE_FINGERPRINT "7e15cd9c7f0658a2"
+#define HRC_EDGE_FEATURE_FINGERPRINT "801cd353f44a1a2c"
 #define HRC_EDGE_N_FEATURES 20
 #define HRC_EDGE_WINDOW 20
 #define HRC_EDGE_JUMP_MMPS 2000

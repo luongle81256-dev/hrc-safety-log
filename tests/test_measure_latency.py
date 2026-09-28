@@ -33,7 +33,7 @@ def test_parse_and_summary():
     assert rep.trips[1][2] == "OVERSPEED"
     assert rep.stats == {"samples": 1500, "lat_mean_us": 150, "lat_max_us": 410, "tof_period_us": 33400}
     s = rep.summary()
-    assert "Số lần ngắt       : 3" in s and "33.4 (ToF)" in s and "= 38.8 ms" in s
+    assert "Số lần ngắt       : 3" in s and "33.4 (cảm biến)" in s and "= 38.8 ms" in s
     assert rep.edge_events == [(4.812, 1, 612)]
     assert "trung bình 540 | max 780" in s and "báo bất thường 3 lần" in s
 

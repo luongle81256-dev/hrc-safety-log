@@ -134,6 +134,31 @@ def test_telemetry_and_heartbeat_json_byte_exact(host):
         assert host(f"HB 1 {ts} {st} {es} {cfg}") == build_heartbeat(KEY, 1, ts, st, es, cfg).to_json()
 
 
+# ---------------- cảm biến siêu âm HC-SR04 (nhánh hardware) ----------------
+def test_ultrasonic_range_conversion(host):
+    """Độ rộng xung ECHO -> mm theo QUY ƯỚC CHUNG (8190 = không thấy vật), làm tròn xuống (an toàn)."""
+    from hrc_common.config import ssm_params
+
+    vmax = ssm_params().distance_valid_max_mm
+    assert host("US 0 0 0") == "8190 0"  # ECHO không lên: LỖI cảm biến => fast lane ngắt relay
+    assert host("US 1 0 0") == "8190 1"  # không có tiếng vọng trong tầm: NGOÀI TẦM, cảm biến vẫn ổn
+    assert host("US 1 1 5831") == "1000 1"  # 1 m: 5831 µs * 0,343 / 2 = 1000,02 mm
+    for us in (0, 1, 175, 1166, 6997, 6998, 7000, 7003, 7004, 7005, 20000, 4_000_000_000):
+        mm = us * 343 // 2000
+        assert host(f"US 1 1 {us}") == f"{mm if mm <= vmax else 8190} 1", f"echo {us} µs"
+
+
+def test_ultrasonic_object_at_protective_distance_reads_as_S(host):
+    """Vật cách ĐÚNG S => ECHO ngắn nhất tương ứng phải đọc ra đúng S (không xa hơn) => fast lane vào DANGER."""
+    from hrc_common.config import ssm_params
+    from hrc_common.ssm import protective_distance_mm
+
+    p = ssm_params()
+    s = protective_distance_mm(p.v_robot_nominal_mmps, p)
+    echo = -(-s * 2000 // 343)  # ceil: độ rộng ECHO nhỏ nhất ứng với quãng >= S
+    assert host(f"US 1 1 {echo}") == f"{s} 1"
+
+
 # ---------------- seq bền qua reset ----------------
 def test_seq_allocator_matches_simulator(host):
     """Chip mới -> chạy 7 bản ghi -> reset -> 1500 (vượt 1 khối) -> reset -> 3: C++ và Python cho CÙNG dãy seq."""

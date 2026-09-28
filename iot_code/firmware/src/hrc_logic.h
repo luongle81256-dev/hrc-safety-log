@@ -12,7 +12,24 @@
 namespace hrc {
 
 constexpr uint64_t INT63_MAX = 0x7FFFFFFFFFFFFFFFULL;  // giới hạn seq/ts/nonce (docs mục 3)
-constexpr uint32_t TOF_OUT_OF_RANGE_MM = 8190;          // VL53L0X không thấy vật
+// Quy ước CHUNG của cả hệ thống cho "không thấy vật / ngoài tầm tin cậy" (giá trị gốc của VL53L0X).
+// Simulator, AI, backend đều hiểu số này => cảm biến nào cũng phải trả về đúng giá trị này.
+constexpr uint32_t TOF_OUT_OF_RANGE_MM = 8190;
+
+// ---------------- cảm biến siêu âm HC-SR04 ----------------
+// Tốc độ âm thanh ~343 m/s ở 20 °C = 0,343 mm/µs; sóng đi rồi dội về nên chia 2:
+//   distance_mm = echo_us * 343 / 2000  (làm tròn XUỐNG => khoảng cách nhỏ hơn => nghiêng về an toàn)
+// Nóng hơn 20 °C âm đi nhanh hơn => số đo nhỏ hơn thật (an toàn); lạnh hơn thì ngược lại (~0,17 %/°C).
+constexpr uint32_t SOUND_SPEED_MPS = 343;
+struct RangeSample {
+  uint32_t distance_mm;  // mm, hoặc TOF_OUT_OF_RANGE_MM
+  bool sensor_ok;        // false => fast lane coi như vật ở sát và NGẮT relay
+};
+// Đổi kết quả 1 lần đo HC-SR04 sang quy ước hệ thống:
+//   echo_started = false : chân Echo không lên HIGH (đứt dây, mất nguồn, module treo) => LỖI cảm biến
+//   echo_ended   = false : Echo HIGH quá lâu = không có vật dội lại trong tầm => NGOÀI TẦM (cảm biến vẫn ổn)
+//   > distance_valid_max_mm cũng tính là ngoài tầm (giống simulator)
+RangeSample ultrasonic_range(bool echo_started, bool echo_ended, uint32_t echo_us);
 
 // Lý do relay đang ngắt (hiển thị Serial/log; KHÔNG gửi trong telemetry)
 enum TripReason : uint8_t {
@@ -22,7 +39,7 @@ enum TripReason : uint8_t {
   TRIP_OVERSPEED,  // robot vượt v_robot_limit
   TRIP_LOCKED,     // bị khóa từ trust lane (LOCK)
   TRIP_BUTTON,     // nút E-Stop vật lý
-  TRIP_SENSOR,     // cảm biến ToF lỗi/timeout
+  TRIP_SENSOR,     // cảm biến khoảng cách lỗi (HC-SR04 không phản hồi)
   TRIP_LINK_LOST,  // mất MQTT quá failsafe_timeout
 };
 const char* trip_reason_name(TripReason r);

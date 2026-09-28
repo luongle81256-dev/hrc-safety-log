@@ -15,9 +15,8 @@
 // -----------------------------------------------------------------------------
 #if defined(CONFIG_IDF_TARGET_ESP32S3)
 // [DỰ PHÒNG] ESP32-S3-DevKitC-1: tránh GPIO0/3/45/46 (strapping), 19/20 (USB), 26–37 (flash/PSRAM)
-  #define PIN_I2C_SDA      8    // VL53L0X SDA (mặc định Wire trên S3)
-  #define PIN_I2C_SCL      9    // VL53L0X SCL
-  #define PIN_TOF_XSHUT    10   // VL53L0X XSHUT – reset cứng cảm biến khi treo
+  #define PIN_US_TRIG      8    // HC-SR04 TRIG (ESP32 -> cảm biến, 3,3 V là đủ kích)
+  #define PIN_US_ECHO      9    // HC-SR04 ECHO (5 V!) – BẮT BUỘC qua cầu chia áp xuống ~3,3 V
   #define PIN_SERVO        4    // SG90 tín hiệu PWM
   #define PIN_RELAY        5    // relay E-Stop (cắt nguồn servo)
   #define PIN_BUZZER       6
@@ -28,9 +27,8 @@
 #elif defined(CONFIG_IDF_TARGET_ESP32)
 // [CHÍNH THỨC] ESP32 DevKit V1 (WROOM-32): tránh GPIO0/2/12/15 (strapping), 6–11 (flash),
 // 34–39 chỉ vào và không có pull-up nội
-  #define PIN_I2C_SDA      21
-  #define PIN_I2C_SCL      22
-  #define PIN_TOF_XSHUT    19
+  #define PIN_US_TRIG      21   // HC-SR04 TRIG (ESP32 -> cảm biến, 3,3 V là đủ kích)
+  #define PIN_US_ECHO      22   // HC-SR04 ECHO (5 V!) – BẮT BUỘC qua cầu chia áp 1 kΩ / 2 kΩ xuống ~3,3 V
   #define PIN_SERVO        18
   #define PIN_RELAY        26
   #define PIN_BUZZER       25
@@ -50,6 +48,15 @@
 // -----------------------------------------------------------------------------
 #define RELAY_ACTIVE_LEVEL   LOW
 #define RELAY_INACTIVE_LEVEL HIGH
+
+// -----------------------------------------------------------------------------
+// CẢM BIẾN SIÊU ÂM HC-SR04 (thay VL53L0X). Thông số theo datasheet phổ biến – GIẢ ĐỊNH, đo lại bằng "stats".
+// -----------------------------------------------------------------------------
+#define US_PERIOD_MS        60     // chu kỳ đo: datasheet khuyên >= 60 ms để tiếng vọng cũ tắt hẳn
+#define US_START_TIMEOUT_US 5000   // sau xung TRIG, ECHO phải lên HIGH trong thời gian này, không thì module LỖI
+#define US_BUSY_TIMEOUT_US  30000  // ECHO còn HIGH từ lần đo trước quá lâu => module treo => LỖI
+// ECHO HIGH lâu hơn thời gian dội về từ (distance_valid_max + 300 mm) => coi như NGOÀI TẦM, không chờ thêm
+#define US_ECHO_TIMEOUT_US  ((HRC_SSM_DISTANCE_VALID_MAX_MM + 300u) * 2000u / 343u)
 
 // Servo SG90 (giả định theo datasheet phổ biến: xung 500–2400 us)
 #define SERVO_MIN_US   500

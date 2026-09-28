@@ -13,7 +13,7 @@ Hệ thống CPS 3 tầng **IoT → AI → Blockchain** cho không gian làm vi�
 
 ```
                         FAST LANE – an toàn, mili-giây, KHÔNG cần mạng
-  VL53L0X ─► ESP32: SSM (ISO/TS 15066) ─► DANGER? ─► NGẮT RELAY (servo mất nguồn)
+  HC-SR04 ─► ESP32: SSM (ISO/TS 15066) ─► DANGER? ─► NGẮT RELAY (servo mất nguồn)
                 │   Edge AI INT8 (cảnh báo sớm, không nằm trong vòng an toàn)
                 │ MQTT + HMAC-SHA256 (telemetry 10 Hz, heartbeat có ký)
                 ▼       TRUST LANE – truy vết, cỡ giây
@@ -186,7 +186,7 @@ Test cần Hardhat node, broker, g++ hoặc TensorFlow sẽ **tự bỏ qua** (c
 ## Giới hạn và hướng phát triển
 
 - **Dữ liệu AI là mô phỏng.** Simulator chạy đúng logic firmware. Khi có board, cần ghi dữ liệu thật, huấn luyện lại, và đo lại các tham số SSM đang giả định (thời gian phản ứng, thời gian dừng).
-- **Drift chậm của 1 cảm biến ToF không phát hiện được.** Cần cảm biến dư (kênh kép, ISO 13849).
+- **Drift chậm của 1 cảm biến khoảng cách không phát hiện được.** Cần cảm biến dư (kênh kép, ISO 13849).
 - **Oracle problem:** chuỗi chỉ đảm bảo log *không bị sửa sau khi ghi*, không đảm bảo cảm biến nói thật. Hướng nâng cấp: chip bảo mật hoặc TEE giữ khóa thiết bị, xác thực dữ liệu tại nguồn.
 - **An toàn chức năng:** đây là mô hình học tập, **chưa được chứng nhận an toàn**. Relay và ESP32 không phải thiết bị an toàn đạt chuẩn.
 - **API backend chưa có xác thực**, chỉ nghe `127.0.0.1`. Hướng: SIWE + HTTPS. Mở khóa có thể nâng thành multisig 2-of-N.
