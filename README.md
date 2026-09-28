@@ -57,7 +57,7 @@ Hệ thống đã chạy trọn vòng trên **mạch ESP32 thật**, blockchain 
 | Yêu cầu | Đáp ứng | Bằng chứng |
 |---|---|---|
 | End-to-end IoT → AI → Smart Contract | ✅ | `scripts/e2e_local.py`: 35/35 kiểm tra; chạy trọn vòng trên mạch thật |
-| Smart contract Solidity, deploy local + testnet | ✅ local · 🟡 Sepolia | Hardhat 3 + Ignition; `scripts/deploy_sepolia.py` đã tập dượt trọn đường Sepolia trên node local |
+| Smart contract Solidity, deploy local + testnet | ✅ local ·| Hardhat 3 + Ignition; `scripts/deploy_sepolia.py` đã tập dượt trọn đường Sepolia trên node local |
 | Kết nối AI với contract bằng web3.py / ethers.js | ✅ | backend dùng web3.py v7, dashboard dùng ethers v6 |
 | Báo cáo PDF + demo | ✅ | `Report_Nhom01.pdf`; hướng dẫn demo ở [mục 6](#6-chạy-demo-trên-mạch-thật-esp32--hc-sr04) và [mục 7](#7-chạy-bằng-mô-phỏng-không-cần-phần-cứng) |
 | **Sáng tạo: phần cứng thật** | ✅ | ESP32 38 chân + HC-SR04 + relay + servo; khóa/mở robot qua blockchain đã chạy trên mạch |
