@@ -62,6 +62,22 @@ def test_store_archived_when_contract_changes(tmp_path, key, clock):
     assert len(archived) == 1
 
 
+def test_store_archived_when_hardhat_restarted_same_address(tmp_path, key, clock):
+    """Hardhat node khởi động lại + deploy lại => CÙNG địa chỉ 0x5FbDB… nhưng block deploy khác
+    => phải cất DB cũ (lỗi thật đã gặp: batch_id trùng, UNIQUE constraint failed)."""
+    db = tmp_path / "hw.sqlite3"
+    addr = "0x5FbDB2315678afecb367f032d93F642f64180aa3"
+    s = open_store_for_contract(db, 31337, addr, "0xaaa1")
+    s.insert_telemetry(make_tel(key, 1, clock.now), clock.now)
+    s.close()
+    s = open_store_for_contract(db, 31337, addr, "0xAAA1")  # cùng chuỗi, chạy lại backend => giữ DB
+    assert s.count_telemetry() == 1
+    s.close()
+    s = open_store_for_contract(db, 31337, addr, "0xbbb2")  # chuỗi mới, cùng địa chỉ => DB mới
+    assert s.count_telemetry() == 0
+    s.close()
+
+
 # ---------------- auditor / tamper ----------------
 @pytest.fixture
 def anchored(store, key, clock):

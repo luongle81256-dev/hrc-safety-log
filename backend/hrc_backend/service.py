@@ -27,6 +27,7 @@ from pathlib import Path
 
 import paho.mqtt.client as mqtt
 import uvicorn
+from web3 import Web3
 
 from hrc_ai.features import WINDOW
 from hrc_ai.inference import HrcDetector
@@ -297,10 +298,13 @@ class BackendService:
         self.mqtt.disconnect()
 
 
-def open_store_for_contract(path: Path, chain_id: int, address: str) -> LogStore:
+def open_store_for_contract(path: Path, chain_id: int, address: str, deploy_block_hash: str = "") -> LogStore:
     """Mỗi DB gắn với ĐÚNG 1 contract. Contract đổi (deploy lại / đổi mạng) => cất DB cũ sang file lưu trữ
-    (không xóa) rồi dùng DB mới – tránh batchId/seq của contract cũ làm hỏng việc neo log vào contract mới."""
-    ident = f"{chain_id}:{address.lower()}"
+    (không xóa) rồi dùng DB mới – tránh batchId/seq của contract cũ làm hỏng việc neo log vào contract mới.
+
+    Địa chỉ thôi CHƯA đủ: Hardhat node khởi động lại + deploy lại cho ra CÙNG địa chỉ (0x5FbDB…, tính từ
+    ví #0 + nonce 0) => thêm hash của block deploy (khác nhau mỗi lần chuỗi được dựng lại)."""
+    ident = f"{chain_id}:{address.lower()}" + (f":{deploy_block_hash.lower()}" if deploy_block_hash else "")
     store = open_store(path)
     old = store.kv_get("contract")
     if old is None and store.count_telemetry() > 0:
@@ -342,7 +346,8 @@ def main(argv: list[str] | None = None) -> int:
         os.environ["CHAIN_START_BLOCK"] = str(probe.deploy_block())
     log.info("Mạng %s (chain %d), contract %s, quét event từ block %s", network(), probe.chain_id, probe.address,
              os.environ["CHAIN_START_BLOCK"])
-    store = open_store_for_contract(args.db or sqlite_path(), probe.chain_id, probe.address)
+    deploy_hash = Web3.to_hex(probe.w3.eth.get_block(int(os.environ["CHAIN_START_BLOCK"]))["hash"])
+    store = open_store_for_contract(args.db or sqlite_path(), probe.chain_id, probe.address, deploy_hash)
     hub = EventHub()
     svc = BackendService(store, key, detector, lambda: ChainClient.from_env("DEVICE"),
                          batch_interval_ms=args.batch_interval_ms, hub=hub)

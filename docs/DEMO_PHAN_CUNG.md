@@ -7,6 +7,8 @@ Quy trình này **đã chạy thành công** trên máy nhóm ngày 28/09/2026. 
 
 Dùng **Command Prompt (cmd)**, trừ khi ghi là *cmd Admin*. Sơ đồ đấu dây: [so_do_mach.html](so_do_mach.html).
 
+> Khi chép lệnh, **chỉ chép các dòng lệnh bên trong khung**, không chép dòng ` ```bat ` và ` ``` ` (chỉ là ký hiệu đánh dấu khung). Gõ **từng dòng một**, mỗi dòng nhấn Enter.
+
 ---
 
 ## Bức tranh tổng thể: dữ liệu đi đường nào
@@ -289,6 +291,8 @@ cd /d D:\Blockchain\Report_CK\iot_code\firmware
 | Board lặp `flash read err, 988` | **Board 38 chân nhưng cắm theo sơ đồ 30 chân**: dây rơi vào chân flash | **Không cắm gì vào CMD, CLK, SD0–SD3.** Cắm theo **chữ in cạnh chân** (G21, G22…) |
 | Còi kêu liên tục, `estop=1(BUTTON)` | Nút E-Stop đang ở trạng thái nhấn / đấu nhầm tiếp điểm NC | Xoay nút nhả ra; dùng khối tiếp điểm **NO** (xanh lá, số 13–14) |
 | Servo không quay, `LINK_LOST` | Bản firmware có mạng mà chưa nối Mosquitto | Làm B1–B2. Muốn thử servo không cần mạng: nạp `-e esp32dev_bench` |
+| Mosquitto chạy nhưng **không bao giờ** hiện `New client connected … hrc-esp32-1` | **Hotspot iPhone tự chuyển sang 5 GHz** sau khi tắt/bật lại (kiểm tra: `netsh wlan show interfaces`, dòng *Band*) | iPhone: Điểm truy cập cá nhân → bật **"Tối đa hóa tính tương thích"**; rút USB ESP32 cắm lại |
+| Mosquitto báo `Only one usage of each socket address` | Đã có Mosquitto khác giữ cổng 1883 (service chưa tắt, hoặc còn cửa sổ Mosquitto cũ) | `net stop mosquitto` (cmd Admin), đóng cửa sổ Mosquitto cũ, chạy lại |
 | Servo không quay, `BOOT` / WARNING | Có vật trong vùng 10 cm trước cảm biến (dây, servo, mép bàn) | Dọn trống; kê cảm biến cao lên, hướng thẳng ra khoảng trống |
 | Dashboard báo *"Không tìm thấy MetaMask"* | Trình duyệt chưa cài MetaMask | Cài extension (A5), mở dashboard trên đúng trình duyệt đó |
 | Nút Mở khóa mờ, ghi *"Kết nối ví để mở khóa"* | Chưa bấm Kết nối MetaMask, hoặc đang chọn tài khoản khác | Bấm **Kết nối MetaMask**, chọn `0x3C44…93BC` |
