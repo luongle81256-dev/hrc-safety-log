@@ -1,0 +1,10 @@
+{
+  "_note": "TỰ SINH từ config/hrc_config.toml bởi scripts/gen_config.py – KHÔNG SỬA TAY",
+  "configHash": "40037d15ebf0e786",
+  "robotIds": [
+    1
+  ],
+  "maxViolations": 3,
+  "batchMaxRecords": 256,
+  "telemetryPeriodMs": 100
+}

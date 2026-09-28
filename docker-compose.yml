@@ -1,0 +1,19 @@
+# HRC Safety Log – hạ tầng chạy local
+# Chạy:   docker compose up -d mosquitto
+# Log:    docker compose logs -f mosquitto
+# Dừng:   docker compose down
+name: hrc-safety-log
+
+services:
+  mosquitto:
+    image: eclipse-mosquitto:2
+    container_name: hrc-mosquitto
+    restart: unless-stopped
+    ports:
+      - "1883:1883"   # MQTT TCP – ESP32 trong LAN kết nối vào IP máy chạy Docker
+    volumes:
+      - ./infra/mosquitto/mosquitto.conf:/mosquitto/config/mosquitto.conf:ro
+      - mosquitto-data:/mosquitto/data
+
+volumes:
+  mosquitto-data:

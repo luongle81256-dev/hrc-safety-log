@@ -1,0 +1,10 @@
+# Chuẩn hóa xuống dòng LF trong repo (nhóm dùng cả Windows lẫn macOS/Linux)
+* text=auto eol=lf
+*.ps1 text eol=crlf
+*.bat text eol=crlf
+*.pdf binary
+*.png binary
+*.tflite binary
+*.joblib binary
+*.keras binary
+*.npz binary

@@ -1,0 +1,118 @@
+# =============================================================================
+# HRC Safety Log – FILE CẤU HÌNH DÙNG CHUNG (NGUỒN SỰ THẬT DUY NHẤT)
+# -----------------------------------------------------------------------------
+# - Được đọc bởi: backend, ai_model, simulator (qua hrc_common.config),
+#   firmware (qua header sinh tự động), contracts (tham số Ignition – Phase 1).
+# - Đơn vị: khoảng cách = mm, thời gian = ms, tốc độ = mm/s.
+# - CHỈ dùng số nguyên (để tính toán/hash nhất quán Python <-> C <-> Solidity).
+# - Sửa file này xong PHẢI chạy:  python scripts/gen_config.py
+#   (sinh lại iot_code/firmware/include/hrc_params.h)
+# =============================================================================
+
+schema_version = 1
+
+[system]
+robot_ids = [1]               # các robot_id hợp lệ trong hệ thống
+telemetry_period_ms = 100     # ESP32 gửi telemetry 10 Hz
+heartbeat_period_ms = 500     # ESP32 gửi heartbeat 2 Hz
+failsafe_timeout_ms = 2000    # mất kết nối MQTT > 2 s => ESP32 tự dừng an toàn
+seq_reserve_block   = 1000    # NVS đặt trước 1000 số seq/lần ghi flash (docs/INTERFACES.md mục 6)
+
+[fastlane]
+# Hành vi E-Stop tại ESP32 (và simulator). GIẢ ĐỊNH – tinh chỉnh khi đo thật ở Phase 5.
+estop_reset_hold_ms   = 1000  # sau khi ngắt, phải SAFE liên tục 1 s (và không LOCKED) mới đóng lại relay
+warning_speed_percent = 50    # vùng WARNING: giảm tốc còn 50% tốc độ lệnh
+
+[security]
+cmd_max_skew_ms        = 30000  # ESP32 bỏ lệnh có |nonce - now| > 30 s (khi đã đồng bộ NTP)
+ts_max_future_skew_ms  = 60000  # backend loại telemetry có ts_ms vượt giờ backend > 60 s
+rejected_payload_max_bytes = 1024 # chỉ lưu tối đa 1 KB payload bị loại (chống làm đầy DB)
+
+[mqtt]
+# {robot_id} được thay bằng số nguyên. KHÔNG đổi (interface đã chốt).
+topic_telemetry = "hrc/{robot_id}/telemetry"
+topic_cmd       = "hrc/{robot_id}/cmd"
+topic_heartbeat = "hrc/{robot_id}/heartbeat"
+# PubSubClient (ESP32) chỉ PUBLISH được QoS 0; subscribe được QoS 0/1.
+qos_telemetry = 0
+qos_heartbeat = 0
+qos_cmd       = 1
+keepalive_s   = 2             # nhỏ để phát hiện mất kết nối nhanh (phục vụ fail-safe)
+
+[zones]
+# Mã vùng – interface đã chốt, KHÔNG đổi.
+SAFE    = 0
+WARNING = 1
+DANGER  = 2
+
+# -----------------------------------------------------------------------------
+# SSM – Speed & Separation Monitoring (ISO/TS 15066, tham chiếu ISO 13855)
+#   S = vH*(TR+TS) + vR*TR + SS + C + ZR + ZS
+#   vH  v_human_mmps     tốc độ người tiến lại gần
+#   vR  (đo runtime)     tốc độ robot hướng về phía người
+#   TR  t_react_ms       thời gian phản ứng của hệ thống (đo -> quyết định -> lệnh dừng)
+#   TS  t_stop_ms        thời gian dừng của robot
+#   SS  s_stop_mm        quãng đường robot đi được khi đang dừng
+#   C   c_intrusion_mm   khoảng xâm nhập (phần cơ thể lọt qua trước khi bị phát hiện)
+#   ZR  z_robot_mm       sai số vị trí robot
+#   ZS  z_sensor_mm      sai số cảm biến đo người (Z_d trong ISO/TS 15066)
+# Tính số nguyên: S = ceil((vH*(TR+TS) + vR*TR) / 1000) + SS + C + ZR + ZS
+#   (làm tròn LÊN => luôn nghiêng về phía an toàn)
+# Phân vùng: d <= S -> DANGER ; d <= S + warning_margin_mm -> WARNING ; còn lại SAFE
+# -----------------------------------------------------------------------------
+[ssm]
+active_profile = "demo_tabletop"
+
+# Profile cho mô hình thu nhỏ trên bàn (servo SG90 + VL53L0X). ĐANG DÙNG.
+# Mọi giá trị là GIẢ ĐỊNH cho mô hình; TR, TS, SS phải ĐO LẠI ở Phase 5.
+[ssm.profiles.demo_tabletop]
+v_human_mmps       = 300   # giả định: tay/vật cản tiến lại gần trên mặt bàn
+t_react_ms         = 100   # giả định: ToF ~33 ms (timing budget mặc định, kiểm tra datasheet ST VL53L0X) + vòng lặp + xử lý
+t_stop_ms          = 150   # giả định: relay nhả + servo dừng; ĐO ở Phase 5
+s_stop_mm          = 15    # giả định: ~ vR_max*TS/2 = 200*0.15/2
+c_intrusion_mm     = 20    # giả định: ToF đo 1 điểm, không có "detection capability" như rèm sáng
+z_robot_mm         = 5     # giả định: sai số vị trí servo SG90
+z_sensor_mm        = 30    # giả định: sai số VL53L0X cỡ vài % ở ~1 m (kiểm tra datasheet ST)
+warning_margin_mm  = 150
+v_robot_nominal_mmps = 150 # tốc độ vận hành bình thường của "tay robot"
+v_robot_limit_mmps   = 250 # ngưỡng vượt tốc (xem ghi chú ở profile iso_reference)
+distance_valid_min_mm = 30   # dưới ngưỡng này coi là đo lỗi/che cảm biến
+distance_valid_max_mm = 1200 # giả định: tầm đo tin cậy chế độ mặc định VL53L0X (kiểm tra datasheet)
+
+# Profile tham chiếu tiêu chuẩn – CHỈ dùng để so sánh trong báo cáo.
+# Không chạy được trên mô hình bàn vì S vượt tầm đo của VL53L0X.
+[ssm.profiles.iso_reference]
+v_human_mmps       = 1600  # ISO 13855: 1600 mm/s khi đi bộ (2000 mm/s cho tay khi S <= 500 mm) – CẦN KIỂM TRA điều khoản
+t_react_ms         = 100   # giả định – phụ thuộc hệ thống điều khiển cụ thể
+t_stop_ms          = 300   # giả định – lấy từ dữ liệu dừng của nhà sản xuất robot (ISO 10218-1, phụ lục đo dừng)
+s_stop_mm          = 200   # giả định – lấy từ dữ liệu dừng của nhà sản xuất robot
+c_intrusion_mm     = 850   # ISO 13855: khi khả năng phát hiện > 40 mm (tầm với cánh tay) – CẦN KIỂM TRA
+z_robot_mm         = 20    # giả định
+z_sensor_mm        = 50    # giả định – theo sai số cảm biến an toàn thực tế
+warning_margin_mm  = 500
+v_robot_nominal_mmps = 200
+v_robot_limit_mmps   = 250 # ISO 10218-1: "reduced speed" <= 250 mm/s – CẦN KIỂM TRA bản 2011 vs 2025
+distance_valid_min_mm = 30
+distance_valid_max_mm = 5000
+
+[merkle]
+# Gom batch -> 1 lần anchorLog. Batch đóng khi đạt 1 trong 2 ngưỡng.
+batch_max_records     = 256    # 10 Hz => ~25.6 s/batch; cây sâu 8 => proof 8 phần tử
+batch_max_interval_ms = 30000
+
+[chain]
+max_violations = 3             # operator vi phạm >= 3 lần => revoke OPERATOR (tham số constructor)
+listener_poll_ms = 1000        # chu kỳ backend đọc event on-chain
+tx_timeout_s = 120             # chờ receipt tối đa
+
+[incident]
+# Chính sách chuyển kết quả AI -> reportIncident (GIẢ ĐỊNH, tinh chỉnh khi demo thật).
+# Số dự đoán LIÊN TIẾP cần có trước khi báo sự cố (chống báo vì 1 mẫu lẻ):
+intrusion_min_consecutive    = 1   # DANGER + AI xác nhận INTRUSION: báo ngay (precision test = 1.0)
+overspeed_min_consecutive    = 3   # robot vượt tốc kéo dài >= 0.3 s
+sensor_fault_min_consecutive = 10  # lỗi cảm biến kéo dài >= 1 s (xung lẻ chỉ ghi log, không khóa robot)
+# Mức nghiêm trọng gửi lên contract (1..3)
+severity_intrusion          = 2
+severity_intrusion_no_estop = 3    # người trong vùng DANGER mà relay KHÔNG ngắt => fast lane hỏng
+severity_overspeed          = 2
+severity_sensor_fault       = 1

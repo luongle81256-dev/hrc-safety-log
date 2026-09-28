@@ -1,0 +1,54 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "hrc-safety-log"
+version = "0.3.0"
+description = "HRC Safety Log – hộp đen an toàn và định danh cho robot hợp tác (IoT -> AI -> Blockchain)"
+requires-python = ">=3.11"
+# Backend chỉ cần các gói nhẹ này để SUY LUẬN (không cần TensorFlow)
+dependencies = [
+    "paho-mqtt>=2.1,<3",
+    "python-dotenv>=1.0",
+    "numpy>=2.0,<3",
+    "scikit-learn==1.9.1",  # ghim cứng: model lưu bằng joblib phụ thuộc phiên bản scikit-learn
+    "joblib>=1.4",
+    "web3>=7,<8",  # interface đã chốt: web3.py v7 (v8 có thể đổi API)
+    "fastapi>=0.115,<1",
+    "uvicorn[standard]>=0.30,<1",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8", "httpx>=0.27", "playwright>=1.50"]
+# Huấn luyện / đánh giá / xuất TFLite
+ai = ["pandas>=2.2", "matplotlib>=3.9", "tensorflow==2.21.0"]
+# Làm việc với phần cứng thật (đọc Serial ESP32)
+hw = ["pyserial>=3.5"]
+
+[project.scripts]
+hrc-sim = "hrc_sim.cli:main"
+hrc-ingest = "hrc_backend.ingest_service:main"
+hrc-cmd = "hrc_backend.send_cmd:main"
+hrc-ai-selftest = "hrc_backend.ai:main"
+hrc-backend = "hrc_backend.service:main"
+
+[tool.setuptools]
+packages = ["hrc_common", "hrc_sim", "hrc_backend", "hrc_ai"]
+
+[tool.setuptools.package-dir]
+hrc_common = "hrc_common"
+hrc_sim = "iot_code/simulator/hrc_sim"
+hrc_backend = "backend/hrc_backend"
+hrc_ai = "ai_model/hrc_ai"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+# Test giao diện (Playwright) chậm và dựng môi trường riêng => chạy riêng: pytest -m ui
+addopts = ["-m", "not ui"]
+markers = [
+    "mqtt: cần broker MQTT đang chạy (tự bỏ qua nếu không kết nối được)",
+    "gcc: cần gcc để biên dịch header C (tự bỏ qua nếu không có)",
+    "chain: cần Hardhat node ở LOCAL_RPC_URL (tự bỏ qua nếu không có)",
+    "ui: test giao diện dashboard bằng Playwright (tự dựng backend + vite preview; chạy riêng: pytest -m ui)",
+]

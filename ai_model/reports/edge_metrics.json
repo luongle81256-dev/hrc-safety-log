@@ -1,0 +1,60 @@
+{
+  "test_windows": 81045,
+  "int8_bit_exact_vs_tflite_full_test": true,
+  "macs": 960,
+  "weights_bytes": {
+    "float32": 4128,
+    "int8_payload": 1824
+  },
+  "models": {
+    "Keras float32": {
+      "precision": 0.9780778275051202,
+      "recall": 0.9546161249722366,
+      "f1": 0.9662045710003747,
+      "roc_auc": 0.9932703050923699,
+      "false_alarm_rate": 0.01069756251041069,
+      "threshold": 1.163142204284668,
+      "file_bytes": 53130,
+      "host_us_per_sample": 7.032900000012887,
+      "recall_by_type": {
+        "INTRUSION": 0.9873049457815393,
+        "OVERSPEED": 0.9666666666666667,
+        "SENSOR:spike": 1.0,
+        "SENSOR:dropout": 1.0
+      }
+    },
+    "TFLite float32": {
+      "precision": 0.9780778275051202,
+      "recall": 0.9546161249722366,
+      "f1": 0.9662045710003747,
+      "roc_auc": 0.9932703040646865,
+      "false_alarm_rate": 0.01069756251041069,
+      "threshold": 1.163142442703247,
+      "file_bytes": 7560,
+      "host_us_per_sample": 4.996600000595208,
+      "recall_by_type": {
+        "INTRUSION": 0.9873049457815393,
+        "OVERSPEED": 0.9666666666666667,
+        "SENSOR:spike": 1.0,
+        "SENSOR:dropout": 1.0
+      }
+    },
+    "TFLite INT8": {
+      "precision": 0.978147052128386,
+      "recall": 0.9543940179166358,
+      "f1": 0.9661245596942217,
+      "roc_auc": 0.9931741618810269,
+      "false_alarm_rate": 0.010660546723177435,
+      "threshold": 1.1856986284255981,
+      "file_bytes": 6952,
+      "host_us_per_sample": 5.47539999934088,
+      "recall_by_type": {
+        "INTRUSION": 0.9873049457815393,
+        "OVERSPEED": 0.9666666666666667,
+        "SENSOR:spike": 1.0,
+        "SENSOR:dropout": 1.0
+      }
+    }
+  },
+  "decision_agreement_float_vs_int8": 0.9993337034980566
+}

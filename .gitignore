@@ -1,0 +1,52 @@
+# ===== Bí mật – TUYỆT ĐỐI không commit =====
+.env
+.env.*
+!.env.example
+!.env.sepolia.example
+secrets.h
+*.pem
+*.key
+
+# ===== Python =====
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+*.egg-info/
+build/
+.pytest_cache/
+.ipynb_checkpoints/
+
+# ===== Node / Hardhat =====
+node_modules/
+artifacts/
+cache/
+coverage/
+coverage.json
+typechain-types/
+contracts/types/
+# Deploy local (chainId 31337) thay đổi mỗi lần chạy; deploy Sepolia thì GIỮ LẠI để đối chiếu
+contracts/ignition/deployments/chain-31337/
+
+# ===== PlatformIO =====
+.pio/
+.pio-venv/
+
+# ===== Dashboard =====
+dashboard/dist/
+
+# ===== Dữ liệu runtime =====
+*.sqlite3
+*.db
+*.log
+backend/data/
+iot_code/simulator/.state/
+# Dataset sinh lại được từ seed (python -m hrc_ai.dataset) – không commit; model + báo cáo thì CÓ commit
+ai_model/data/
+
+# ===== OS / IDE =====
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/*
+!.vscode/extensions.json

@@ -1,0 +1,57 @@
+{
+  "created_at": "2026-09-24T17:18:35+00:00",
+  "config_hash": "40037d15ebf0e786",
+  "feature_fingerprint": "7e15cd9c7f0658a2",
+  "window": 20,
+  "feature_names": [
+    "d_last",
+    "d_min",
+    "d_mean",
+    "d_std",
+    "d_slope_mmps",
+    "dd_last_mmps",
+    "dd_absmax_mmps",
+    "n_jumps",
+    "oor_frac",
+    "oor_last",
+    "n_abrupt_oor",
+    "v_last",
+    "v_max",
+    "v_mean",
+    "estop_frac",
+    "estop_last",
+    "zone_last",
+    "danger_frac",
+    "resid_std",
+    "d_last_minus_med"
+  ],
+  "labels": [
+    "INTRUSION",
+    "NORMAL",
+    "OVERSPEED",
+    "SENSOR_FAULT"
+  ],
+  "thresholds": {
+    "iforest": 0.6504780961357993,
+    "autoencoder": 1.163142204284668,
+    "quantile": 0.99
+  },
+  "autoencoder_layers": [
+    20,
+    16,
+    8,
+    4,
+    8,
+    16,
+    20
+  ],
+  "autoencoder_params": 1032,
+  "train_windows": 179050,
+  "anomaly_models_trained_on": "cửa sổ NORMAL sạch hoàn toàn",
+  "classifier_excludes": "bản ghi drift (không quan sát được với 1 cảm biến)",
+  "val_windows": 53715,
+  "sklearn_version": "1.9.1",
+  "numpy_version": "2.4.6",
+  "tensorflow_version": "2.21.0",
+  "keras_version": "3.15.1"
+}

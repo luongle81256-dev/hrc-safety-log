@@ -1,0 +1,170 @@
+{
+  "test_windows": 89525,
+  "drift_windows_excluded": 6618,
+  "labels": [
+    "NORMAL",
+    "INTRUSION",
+    "OVERSPEED",
+    "SENSOR_FAULT"
+  ],
+  "classification": {
+    "NORMAL": {
+      "precision": 0.9975482901804061,
+      "recall": 0.9822911288184317,
+      "f1-score": 0.9898609216576901,
+      "support": 71659.0
+    },
+    "INTRUSION": {
+      "precision": 0.993405433922448,
+      "recall": 0.9960327955567311,
+      "f1-score": 0.9947173798203909,
+      "support": 3781.0
+    },
+    "OVERSPEED": {
+      "precision": 0.8055555555555556,
+      "recall": 0.9666666666666667,
+      "f1-score": 0.8787878787878788,
+      "support": 5100.0
+    },
+    "SENSOR_FAULT": {
+      "precision": 0.9724619810933004,
+      "recall": 0.9995775242923531,
+      "f1-score": 0.9858333333333333,
+      "support": 2367.0
+    },
+    "accuracy": 0.9824502153014824,
+    "macro avg": {
+      "precision": 0.9422428151879275,
+      "recall": 0.9861420288335456,
+      "f1-score": 0.9622998783998233,
+      "support": 82907.0
+    },
+    "weighted avg": {
+      "precision": 0.984832760976512,
+      "recall": 0.9824502153014824,
+      "f1-score": 0.9831347881359535,
+      "support": 82907.0
+    }
+  },
+  "confusion_matrix": [
+    [
+      70390,
+      25,
+      1190,
+      54
+    ],
+    [
+      2,
+      3766,
+      0,
+      13
+    ],
+    [
+      170,
+      0,
+      4930,
+      0
+    ],
+    [
+      1,
+      0,
+      0,
+      2366
+    ]
+  ],
+  "anomaly_detection": {
+    "IsolationForest": {
+      "precision": 0.9703012529992002,
+      "recall": 0.6736506996372251,
+      "f1": 0.7952107321549521,
+      "roc_auc": 0.9675081643317395,
+      "tp": 18198,
+      "fp": 557,
+      "fn": 8816,
+      "tn": 53474,
+      "false_alarm_rate": 0.010308896744461513
+    },
+    "Autoencoder": {
+      "precision": 0.9780778275051202,
+      "recall": 0.9546161249722366,
+      "f1": 0.9662045710003747,
+      "roc_auc": 0.9932703057774923,
+      "tp": 25788,
+      "fp": 578,
+      "fn": 1226,
+      "tn": 53453,
+      "false_alarm_rate": 0.01069756251041069
+    },
+    "IF ∪ AE": {
+      "precision": 0.9693276684555754,
+      "recall": 0.9627970681868661,
+      "f1": 0.966051331575233,
+      "roc_auc": 0.9919062564103039,
+      "tp": 26009,
+      "fp": 823,
+      "fn": 1005,
+      "tn": 53208,
+      "false_alarm_rate": 0.015231996446484425
+    }
+  },
+  "recall_by_type": {
+    "INTRUSION": {
+      "n": 3781,
+      "iforest": 0.9151018249140439,
+      "autoencoder": 0.9873049457815393,
+      "rf_correct": 0.9960327955567311
+    },
+    "OVERSPEED": {
+      "n": 5100,
+      "iforest": 0.0,
+      "autoencoder": 0.9666666666666667,
+      "rf_correct": 0.9666666666666667
+    },
+    "SENSOR:spike": {
+      "n": 693,
+      "iforest": 1.0,
+      "autoencoder": 1.0,
+      "rf_correct": 1.0
+    },
+    "SENSOR:dropout": {
+      "n": 1674,
+      "iforest": 1.0,
+      "autoencoder": 1.0,
+      "rf_correct": 0.9994026284348865
+    },
+    "SENSOR:drift": {
+      "n": 6618,
+      "iforest": 0.05349048050770626,
+      "autoencoder": 0.05530371713508613,
+      "rf_correct": 0.0
+    }
+  },
+  "danger_confirmation": {
+    "danger_windows": 4326,
+    "true_intrusions": 3633,
+    "baseline_rule": {
+      "precision": 0.8398058252427184,
+      "recall": 1.0,
+      "f1": 0.9129287598944591,
+      "false_incidents": 693
+    },
+    "ai": {
+      "precision": 1.0,
+      "recall": 0.9964216900633086,
+      "f1": 0.9982076382186681,
+      "false_incidents": 0,
+      "missed_intrusions": 13
+    }
+  },
+  "latency": {
+    "mean_ms": 32.96383402526196,
+    "p95_ms": 47.63070000008156,
+    "n": 1975
+  },
+  "thresholds": {
+    "iforest": 0.6504780961357993,
+    "autoencoder": 1.163142204284668,
+    "quantile": 0.99
+  },
+  "model_created_at": "2026-09-24T17:18:35+00:00"
+}
