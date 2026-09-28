@@ -1,6 +1,6 @@
 {
-  "feature_fingerprint": "801cd353f44a1a2c",
-  "threshold_int8": 1.1856986284255981,
+  "feature_fingerprint": "9903ceae2cd39a54",
+  "threshold_int8": 0.9120885133743286,
   "double_rounding": false,
   "activations": [
     "relu",
@@ -10,10 +10,10 @@
     "relu",
     "linear"
   ],
-  "in_scale": 0.14669544994831085,
-  "in_zp": 32,
-  "out_scale": 0.08996527642011642,
-  "out_zp": -15,
+  "in_scale": 0.08123036473989487,
+  "in_zp": -18,
+  "out_scale": 0.07813562452793121,
+  "out_zp": -34,
   "feature_names": [
     "d_last",
     "d_min",

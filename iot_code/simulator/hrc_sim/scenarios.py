@@ -162,8 +162,12 @@ class ApproachScenario(Scenario):
         self.phase = "idle"
         self.phase_t = 0.0
         self.home = self.rng.uniform(800, 1000)
-        self.target = self.rng.uniform(60, max(61.0, self.s_nominal - 20))  # vào hẳn vùng DANGER
-        self.v_in = self.rng.uniform(150, self.p.v_human_mmps)  # không nhanh hơn vH giả định
+        # vào hẳn vùng DANGER (kể cả S khi robot đã đứng yên). S nhỏ (profile demo_close, S ~50 mm):
+        # đi sâu tới ~S/4 – mô phỏng vị trí THẬT; cảm biến thật đo kém dưới ~3 cm (xem hrc_config.toml)
+        lo = 60.0 if self.s_nominal - 20 > 60 else max(10.0, self.s_nominal * 0.25)
+        self.target = self.rng.uniform(lo, max(lo + 1, self.s_nominal - 20))
+        # không nhanh hơn vH giả định; vH rất nhỏ (demo_close) thì vẫn đi 150 mm/s để kịch bản không kéo dài
+        self.v_in = self.rng.uniform(150, max(151.0, self.p.v_human_mmps))
         self.x = self.home
 
     def _human(self) -> float:

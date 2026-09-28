@@ -61,7 +61,26 @@ DANGER  = 2
 # Phân vùng: d <= S -> DANGER ; d <= S + warning_margin_mm -> WARNING ; còn lại SAFE
 # -----------------------------------------------------------------------------
 [ssm]
-active_profile = "demo_tabletop"
+active_profile = "demo_close"   # nhánh hardware: demo tay sát cảm biến (5 cm). Đổi lại "demo_tabletop" = bản cũ (18 cm)
+
+# Profile DEMO TRÊN BÀN VỚI KHOẢNG CÁCH NGẮN – nhóm yêu cầu robot chỉ dừng khi tay cách cảm biến ~5 cm.
+# S(150 mm/s) = ceil((50*(150+100) + 150*150)/1000) + 0 + 0 + 5 + 10 = 35 + 15 = 50 mm
+# => DANGER <= 5 cm, WARNING <= 10 cm. S(0) = 28 mm, S(250) = 65 mm.
+# CHỈ ĐỂ TRÌNH DIỄN: vH = 50 mm/s là tay đưa vào CHẬM; KHÔNG phải thông số an toàn theo ISO/TS 15066
+# (so sánh trong báo cáo với iso_reference). HC-SR04 đo kém dưới ~3 cm: không đưa tay sát hơn 3 cm.
+[ssm.profiles.demo_close]
+v_human_mmps       = 50    # giả định demo: tay đưa vào chậm
+t_react_ms         = 150   # HC-SR04 chu kỳ 60 ms + chờ tiếng vọng + xử lý (như demo_tabletop)
+t_stop_ms          = 100   # giả định: relay nhả + servo SG90 dừng (tải nhẹ)
+s_stop_mm          = 0     # servo gần như dừng tức thì khi mất điện (tay đòn nhẹ)
+c_intrusion_mm     = 0     # demo: bỏ khoảng xâm nhập
+z_robot_mm         = 5
+z_sensor_mm        = 10    # HC-SR04 ~±3 mm ở cự ly ngắn + dư cho nhiệt độ
+warning_margin_mm  = 50
+v_robot_nominal_mmps = 150
+v_robot_limit_mmps   = 250
+distance_valid_min_mm = 30   # HC-SR04 vùng mù ~20–30 mm
+distance_valid_max_mm = 1200
 
 # Profile cho mô hình thu nhỏ trên bàn (servo SG90 + cảm biến siêu âm HC-SR04). ĐANG DÙNG.
 # Mọi giá trị là GIẢ ĐỊNH cho mô hình; TR, TS, SS phải ĐO LẠI bằng scripts/measure_latency.py.

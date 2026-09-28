@@ -5,8 +5,8 @@
 #pragma once
 #include <stdint.h>
 
-#define HRC_CONFIG_HASH "426c922f7819b488"   // so khớp với backend để phát hiện lệch cấu hình
-#define HRC_SSM_PROFILE "demo_tabletop"
+#define HRC_CONFIG_HASH "5467e8253d6100d4"   // so khớp với backend để phát hiện lệch cấu hình
+#define HRC_SSM_PROFILE "demo_close"
 
 // ---- [system] ----
 #define HRC_TELEMETRY_PERIOD_MS 100u
@@ -31,15 +31,15 @@
 #define HRC_ZONE_WARNING 1
 #define HRC_ZONE_DANGER 2
 
-// ---- [ssm.profiles.demo_tabletop] ----
-#define HRC_SSM_V_HUMAN_MMPS 300u
+// ---- [ssm.profiles.demo_close] ----
+#define HRC_SSM_V_HUMAN_MMPS 50u
 #define HRC_SSM_T_REACT_MS 150u
-#define HRC_SSM_T_STOP_MS 150u
-#define HRC_SSM_S_STOP_MM 15u
-#define HRC_SSM_C_INTRUSION_MM 20u
+#define HRC_SSM_T_STOP_MS 100u
+#define HRC_SSM_S_STOP_MM 0u
+#define HRC_SSM_C_INTRUSION_MM 0u
 #define HRC_SSM_Z_ROBOT_MM 5u
-#define HRC_SSM_Z_SENSOR_MM 30u
-#define HRC_SSM_WARNING_MARGIN_MM 150u
+#define HRC_SSM_Z_SENSOR_MM 10u
+#define HRC_SSM_WARNING_MARGIN_MM 50u
 #define HRC_SSM_V_ROBOT_NOMINAL_MMPS 150u
 #define HRC_SSM_V_ROBOT_LIMIT_MMPS 250u
 #define HRC_SSM_DISTANCE_VALID_MIN_MM 30u

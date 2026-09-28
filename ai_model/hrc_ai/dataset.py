@@ -8,18 +8,22 @@ Chạy:  python -m hrc_ai.dataset          (ghi ai_model/data/{train,val,test}.c
 from __future__ import annotations
 
 import argparse
+import hashlib
 from pathlib import Path
 
 import numpy as np
 import pandas as pd
 from numpy.lib.stride_tricks import sliding_window_view
 
+import hrc_sim.device
+import hrc_sim.offline
+import hrc_sim.scenarios
 from hrc_common.config import ROOT_DIR
 from hrc_sim.device import MemoryNvs, SimDevice
 from hrc_sim.offline import run_offline
 from hrc_sim.scenarios import LABELS, make_scenario
 
-from .features import WINDOW, compute_features
+from .features import WINDOW, compute_features, feature_fingerprint
 
 DATA_DIR = ROOT_DIR / "ai_model" / "data"
 DATASET_KEY = bytes(range(32))  # chỉ để simulator ký; HMAC không ảnh hưởng dataset
@@ -49,12 +53,28 @@ def generate_split(split: str) -> pd.DataFrame:
     return pd.concat(runs, ignore_index=True)
 
 
+def data_fingerprint() -> str:
+    """Dấu vân tay của NGUỒN sinh dữ liệu: config ảnh hưởng đặc trưng + mã simulator + kế hoạch sinh.
+
+    Đổi SSM (vd khoảng cách an toàn) hay sửa kịch bản simulator => file CSV cũ không còn đúng => sinh lại.
+    """
+    h = hashlib.sha256(feature_fingerprint().encode())
+    for mod in (hrc_sim.scenarios, hrc_sim.device, hrc_sim.offline):
+        h.update(Path(mod.__file__).read_bytes().replace(b"\r\n", b"\n"))
+    h.update(repr((SPLITS, PLAN)).encode())
+    return h.hexdigest()[:16]
+
+
 def load_split(split: str, data_dir: Path = DATA_DIR, regenerate: bool = False) -> pd.DataFrame:
     path = data_dir / f"{split}.csv"
-    if regenerate or not path.exists():
+    stamp = data_dir / f"{split}.fingerprint"
+    fp = data_fingerprint()
+    stale = not stamp.exists() or stamp.read_text(encoding="utf-8").strip() != fp
+    if regenerate or not path.exists() or stale:
         data_dir.mkdir(parents=True, exist_ok=True)
         df = generate_split(split)
         df.to_csv(path, index=False)
+        stamp.write_text(fp, encoding="utf-8")
         return df
     return pd.read_csv(path, keep_default_na=False)
 

@@ -1,5 +1,5 @@
 {
-  "test_windows": 81045,
+  "test_windows": 80451,
   "int8_bit_exact_vs_tflite_full_test": true,
   "macs": 960,
   "weights_bytes": {
@@ -8,53 +8,53 @@
   },
   "models": {
     "Keras float32": {
-      "precision": 0.9780778275051202,
-      "recall": 0.9546161249722366,
-      "f1": 0.9662045710003747,
-      "roc_auc": 0.9932703050923699,
-      "false_alarm_rate": 0.01069756251041069,
-      "threshold": 1.163142204284668,
+      "precision": 0.9766304798209994,
+      "recall": 0.9289402120364166,
+      "f1": 0.9521885793928131,
+      "roc_auc": 0.9890850637111888,
+      "false_alarm_rate": 0.010240023239769054,
+      "threshold": 0.8172510862350464,
       "file_bytes": 53130,
-      "host_us_per_sample": 0.298099999781698,
+      "host_us_per_sample": 0.3364000003784895,
       "recall_by_type": {
-        "INTRUSION": 0.9873049457815393,
+        "INTRUSION": 0.9696132596685083,
         "OVERSPEED": 0.9666666666666667,
         "SENSOR:spike": 1.0,
         "SENSOR:dropout": 1.0
       }
     },
     "TFLite float32": {
-      "precision": 0.9780778275051202,
-      "recall": 0.9546161249722366,
-      "f1": 0.9662045710003747,
-      "roc_auc": 0.9932703040646865,
-      "false_alarm_rate": 0.01069756251041069,
-      "threshold": 1.163142442703247,
+      "precision": 0.9766304798209994,
+      "recall": 0.9289402120364166,
+      "f1": 0.9521885793928131,
+      "roc_auc": 0.9890850626378389,
+      "false_alarm_rate": 0.010240023239769054,
+      "threshold": 0.8172512054443359,
       "file_bytes": 7560,
-      "host_us_per_sample": 5.077399997389875,
+      "host_us_per_sample": 5.279400007566437,
       "recall_by_type": {
-        "INTRUSION": 0.9873049457815393,
+        "INTRUSION": 0.9696132596685083,
         "OVERSPEED": 0.9666666666666667,
         "SENSOR:spike": 1.0,
         "SENSOR:dropout": 1.0
       }
     },
     "TFLite INT8": {
-      "precision": 0.978147052128386,
-      "recall": 0.9543940179166358,
-      "f1": 0.9661245596942217,
-      "roc_auc": 0.9931741618810269,
-      "false_alarm_rate": 0.010660546723177435,
-      "threshold": 1.1856986284255981,
+      "precision": 0.9774538547301482,
+      "recall": 0.9329208213455248,
+      "f1": 0.9546682798951401,
+      "roc_auc": 0.9904952685975358,
+      "false_alarm_rate": 0.009913213987436,
+      "threshold": 0.9120885133743286,
       "file_bytes": 6952,
-      "host_us_per_sample": 5.180200001632329,
+      "host_us_per_sample": 5.1088000036543235,
       "recall_by_type": {
-        "INTRUSION": 0.9873049457815393,
+        "INTRUSION": 0.9703038674033149,
         "OVERSPEED": 0.9666666666666667,
         "SENSOR:spike": 1.0,
         "SENSOR:dropout": 1.0
       }
     }
   },
-  "decision_agreement_float_vs_int8": 0.9993337034980566
+  "decision_agreement_float_vs_int8": 0.9968800885010752
 }
