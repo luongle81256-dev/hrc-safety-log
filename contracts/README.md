@@ -2,7 +2,7 @@
 
 Hardhat **3.17.0** + Ignition, Solidity **0.8.28** (pragma `^0.8.24`, optimizer 200 runs), OpenZeppelin Contracts **5.6.1**.
 
-> Người mới bắt đầu với phần này: đọc [docs/NGUOI3_SMART_CONTRACT.md](../docs/NGUOI3_SMART_CONTRACT.md) (quy trình từng bước, vì sao, giải thích code), rồi tự gọi từng hàm bằng `python scripts/thuc_hanh_contract.py`.
+> Muốn tự tay gọi từng hàm của contract trên chuỗi local (có giải thích từng bước): `python scripts/thuc_hanh_contract.py`.
 
 ## Lệnh
 

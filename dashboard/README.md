@@ -2,7 +2,7 @@
 
 Vite 8 + React 19 + TypeScript 5.9 + **ethers 6.17** + MetaMask.
 
-![Dashboard – robot đang LOCKED, ví SUPERVISOR đã kết nối](../docs/screenshots/dashboard_locked.png)
+![Dashboard – robot đang LOCKED, ví SUPERVISOR đã kết nối](screenshots/dashboard_locked.png)
 
 ## Tính năng
 

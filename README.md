@@ -9,7 +9,7 @@ Hệ thống CPS 3 tầng **IoT → AI → Blockchain** cho không gian làm vi�
 
 Hệ thống đã chạy trọn vòng trên **mạch ESP32 thật**, blockchain Hardhat local và ví MetaMask:
 
-![Demo mạch thật: supervisor mở khóa bằng MetaMask](docs/screenshots/demo_mach_that_unlocked.png)
+![Demo mạch thật: supervisor mở khóa bằng MetaMask](dashboard/screenshots/demo_mach_that_unlocked.png)
 
 ## Mục lục
 
@@ -30,7 +30,7 @@ Hệ thống đã chạy trọn vòng trên **mạch ESP32 thật**, blockchain 
 
 ## 1. Kiến trúc hai luồng
 
-![Kiến trúc hai luồng](docs/screenshots/kien_truc_2_luong.png)
+![Kiến trúc hai luồng](dashboard/screenshots/kien_truc_2_luong.png)
 
 ```
                         FAST LANE – an toàn, mili-giây, KHÔNG cần mạng
@@ -77,6 +77,7 @@ Hệ thống đã chạy trọn vòng trên **mạch ESP32 thật**, blockchain 
 | Độ trễ trust lane (DANGER → LOCK, chuỗi local) | khoảng 0,3–1,1 s. Fast lane đã ngắt relay tại ESP32 **trước đó** |
 | Kiểm thử tự động | 201 pytest + 2 test giao diện + 35/35 end-to-end; mutation test bắt được 100% lỗi cài vào |
 | Demo mạch thật | robot khóa khi tay < 5 cm; **operator thử mở bị contract từ chối**; supervisor mở bằng MetaMask thì chạy lại |
+| Gas đo trên mạch thật (buổi 4 phút, `scripts/chi_phi_gas.py`) | 28 `anchorLog` TB 85.177 gas · `reportIncident` 122.235 · `unlock` 33.279; triển khai 1 lần 1.880.654 gas. Cấu hình mặc định ≈ 0,095 ETH/ca 8 giờ (@1 gwei) |
 
 <table>
 <tr>
@@ -89,7 +90,7 @@ Hệ thống đã chạy trọn vòng trên **mạch ESP32 thật**, blockchain 
 </tr>
 </table>
 
-Chi tiết từng tầng: [contracts](contracts/README.md) · [AI](ai_model/README.md) · [IoT + firmware](iot_code/README.md) · [backend](backend/README.md) · [dashboard](dashboard/README.md) · [interface đã chốt](docs/INTERFACES.md)
+Chi tiết từng tầng: [contracts](contracts/README.md) · [AI](ai_model/README.md) · [IoT + firmware](iot_code/README.md) · [backend](backend/README.md) · [dashboard](dashboard/README.md)
 
 ## 4. Cấu trúc repo
 
@@ -99,12 +100,11 @@ Chi tiết từng tầng: [contracts](contracts/README.md) · [AI](ai_model/READ
 | [ai_model/](ai_model/) | Sinh dataset, huấn luyện, đánh giá, lượng tử INT8; **trọng số đã huấn luyện** ở `models/` |
 | [iot_code/](iot_code/) | Firmware ESP32 (PlatformIO) + simulator Python (chạy đúng logic firmware) |
 | [backend/](backend/) | Nhận MQTT, AI, gom batch Merkle, web3.py, nghe event, API FastAPI + WebSocket |
-| [dashboard/](dashboard/) | Vite + React + ethers + MetaMask |
+| [dashboard/](dashboard/) | Vite + React + ethers + MetaMask; ảnh chụp và sơ đồ mạch ở `dashboard/screenshots/`, `dashboard/so_do_mach.html` |
 | [scripts/](scripts/) | demo, sửa log thử (tamper), đối soát, deploy Sepolia, e2e, sinh cấu hình, đo độ trễ |
 | [config/hrc_config.toml](config/hrc_config.toml) | **Cấu hình dùng chung duy nhất** (SSM, chu kỳ, batch, chính sách sự cố…) |
 | [hrc_common/](hrc_common/) | Giao thức (HMAC, parse chặt), Merkle, SSM – dùng chung cho Python |
 | [tests/](tests/) | pytest cho toàn hệ thống (kể cả logic firmware C++ biên dịch bằng g++) |
-| [docs/](docs/) | Hướng dẫn chạy mô phỏng, sơ đồ mạch, interface đã chốt, ảnh chụp |
 | `Report_Nhom01.pdf` | Báo cáo kỹ thuật |
 
 Nhãn git `v1-simulator` giữ bản mô phỏng ban đầu (dùng cảm biến VL53L0X, trước khi làm phần cứng).
@@ -153,7 +153,7 @@ Dùng **Command Prompt (cmd)**, trừ khi ghi là *cmd Admin*. Khi chép lệnh,
 
 ### 6.1. Phần cứng và sơ đồ đấu dây
 
-![Sơ đồ đấu dây ESP32 38 chân](docs/screenshots/so_do_mach_esp32_38chan.png)
+![Sơ đồ đấu dây ESP32 38 chân](dashboard/screenshots/so_do_mach_esp32_38chan.png)
 
 | Linh kiện | Chân ESP32 | Ghi chú |
 |---|---|---|
@@ -331,8 +331,8 @@ Mở trình duyệt (**Chrome có MetaMask**) vào **http://localhost:5173**.
 
 <table>
 <tr>
-<td><img src="docs/screenshots/demo_mach_that_locked.png" alt="Robot bị khóa trên blockchain"></td>
-<td><img src="docs/screenshots/demo_mach_that_unlocked.png" alt="Supervisor mở khóa bằng MetaMask"></td>
+<td><img src="dashboard/screenshots/demo_mach_that_locked.png" alt="Robot bị khóa trên blockchain"></td>
+<td><img src="dashboard/screenshots/demo_mach_that_unlocked.png" alt="Supervisor mở khóa bằng MetaMask"></td>
 </tr>
 <tr>
 <td align="center"><i>Bước 3–4: tay vào dưới 5 cm, relay NGẮT, chuỗi LOCKED</i></td>
@@ -357,6 +357,12 @@ cd /d D:\Blockchain\Report_CK
 python scripts\tamper_demo.py --db backend\data\hrc_log_hw.sqlite3
 ```
 Script cố tình sửa một dòng log (đổi DANGER thành SAFE để che sự cố), tính lại Merkle root và so với root **đã nằm trên blockchain**: lệch. Chữ ký HMAC của ESP32 chỉ ra **đúng dòng bị sửa**. Cuối cùng script tự khôi phục dòng đã sửa.
+**Kiểm tra chi phí gas** (khi demo được từ 3 phút, blockchain vẫn đang chạy):
+```bat
+cd /d D:\Blockchain\Report_CK
+.venv\Scripts\activate.bat
+python scripts\chi_phi_gas.py --eth-usd 2500
+```
 
 ### 6.5. Kết thúc buổi demo
 
@@ -407,8 +413,6 @@ Muốn thử relay và servo **không cần mạng**: nạp bản `-e esp32dev_b
 ---
 
 ## 7. Chạy bằng mô phỏng (không cần phần cứng)
-
-> Hướng dẫn chạy thủ công từng bước, kèm kết quả mong đợi: [docs/HUONG_DAN_CHAY.md](docs/HUONG_DAN_CHAY.md)
 
 Mosquitto dùng service mặc định của Windows. Mở 4 terminal (đã kích hoạt `.venv`):
 
@@ -503,8 +507,8 @@ Test cần Hardhat node, broker, g++ hoặc TensorFlow sẽ **tự bỏ qua** (c
 
 | Thành viên | Phụ trách |
 |---|---|
-| [Họ tên] | IoT & firmware: lắp mạch, firmware SSM, fail-safe, MQTT có ký |
-| [Họ tên] | AI: dữ liệu, Random Forest, Isolation Forest, Autoencoder, Edge AI INT8 |
-| [Họ tên] | Smart contract: HRCSafetyLog, kiểm thử, deploy |
-| [Họ tên] (trưởng nhóm) | Backend tích hợp: MQTT, Merkle, web3.py, xử lý sự cố |
-| [Họ tên] | Dashboard, MetaMask, báo cáo, slide |
+| Đinh Thiện Vinh | IoT & firmware: lắp mạch, firmware SSM, fail-safe, MQTT có ký |
+| Đoàn Nguyễn Hoàng MInh | AI: dữ liệu, Random Forest, Isolation Forest, Autoencoder, Edge AI INT8 |
+| Lê Văn Lương (Nhóm trưởng) | Smart contract: HRCSafetyLog, kiểm thử, deploy, metamask, slide |
+| Nguyễn Hồ Minh Vy | Backend tích hợp: MQTT, Merkle, web3.py, xử lý sự cố |
+| Nguyễn Ngọc Tú | Dashboard, MetaMask, báo cáo, |
