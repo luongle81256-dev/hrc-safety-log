@@ -247,12 +247,14 @@ python scripts\tamper_demo.py --db backend\data\hrc_log_hw.sqlite3
 **Làm gì**, theo thứ tự:
 1. `Ctrl+C` ở cửa sổ 4 (dashboard) → cửa sổ 3 (backend) → cửa sổ 2 (blockchain).
 2. Tắt **nguồn 5V servo**, rút **USB** ESP32. Relay tự nhả.
-3. Cửa sổ 1 (cmd Admin): `Ctrl+C` để tắt Mosquitto, rồi gõ:
+3. Cửa sổ 1 (cmd Admin): `Ctrl+C` để tắt Mosquitto.
+4. **(Chỉ khi muốn chạy bản mô phỏng ngay, không khởi động lại máy)** trong **cmd Admin**:
    ```bat
    net start mosquitto
    ```
+   Chạy trong cmd thường sẽ báo `System error 5 … Access is denied`.
 
-**Vì sao bước 3 quan trọng:** trả Mosquitto về chế độ chạy ngầm như cũ. Nếu quên, lần sau chạy **bản mô phỏng** sẽ không có broker, simulator và backend không kết nối được.
+**Vì sao bước 4 là tùy chọn:** Mosquitto chạy ngầm được đặt **tự bật khi mở máy**. Tắt máy xong, lần sau mở lên nó tự chạy lại. Nó chỉ nhận kết nối trong laptop, đủ cho **bản mô phỏng**. Còn lần sau chạy **mạch thật**, vẫn phải làm lại **B2** (tắt nó, chạy bản nghe cả mạng Wi-Fi).
 
 ---
 
