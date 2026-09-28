@@ -119,7 +119,7 @@ winget install -e --id Python.Python.3.11
 winget install -e --id OpenJS.NodeJS.LTS               # Node ≥ 22 (Hardhat 3, Vite 8)
 winget install -e --id EclipseFoundation.Mosquitto
 
-git clone <repo> ; cd <repo>
+git clone D:\Blockchain\Report_CK ; cd D:\Blockchain\Report_CK
 py -3.11 -m venv .venv ; .\.venv\Scripts\Activate.ps1
 pip install -e ".[dev,ai]"                             # ai = TensorFlow (~300 MB), chỉ cần khi huấn luyện lại
 python -m playwright install chromium                  # chỉ cần cho test giao diện
@@ -149,7 +149,7 @@ Quy trình này **đã chạy thành công** trên máy nhóm ngày 28/09/2026. 
 - **Vì sao:** bước đó phục vụ phần nào của mô hình.
 - **✅ Đúng khi:** dấu hiệu để biết đã làm đúng; chưa đúng thì **dừng lại sửa**, đừng làm tiếp.
 
-Dùng **Command Prompt (cmd)**, trừ khi ghi là *cmd Admin*. Các lệnh viết `<repo>` là thư mục gốc của repo trên máy bạn (ví dụ `D:\Blockchain\Report_CK`). Khi chép lệnh, **chỉ chép các dòng lệnh bên trong khung**, gõ **từng dòng một**.
+Dùng **Command Prompt (cmd)**, trừ khi ghi là *cmd Admin*. Khi chép lệnh, **chỉ chép các dòng lệnh bên trong khung**, gõ **từng dòng một**.
 
 ### 6.1. Phần cứng và sơ đồ đấu dây
 
@@ -221,7 +221,7 @@ Cần **6 cửa sổ**: 1 cmd Admin + 4 cmd thường + trình duyệt. Làm **�
 ```bat
 net stop mosquitto
 sc query mosquitto
-cd /d <repo>
+cd /d D:\Blockchain\Report_CK
 "C:\Program Files\mosquitto\mosquitto.exe" -c infra\mosquitto\mosquitto.native.conf -v
 ```
 Dòng `STATE` của `sc query` phải là **`1  STOPPED`**. **Để nguyên cửa sổ này** suốt buổi demo.
@@ -252,7 +252,7 @@ Trước khi nối được Mosquitto, relay **ngắt** và servo **đứng yên
 
 **Làm gì:**
 ```bat
-cd /d <repo>\contracts
+cd /d D:\Blockchain\Report_CK\contracts
 npx hardhat node
 ```
 **Để nguyên cửa sổ này.**
@@ -265,7 +265,7 @@ npx hardhat node
 
 **Làm gì:**
 ```bat
-cd /d <repo>\contracts
+cd /d D:\Blockchain\Report_CK\contracts
 npx hardhat ignition deploy ignition/modules/HRCSafetyLog.ts --network localhost --reset
 cd ..
 .venv\Scripts\activate.bat
@@ -297,7 +297,7 @@ Dòng `DB … thuộc contract khác – đã cất sang …` là **bình thư�
 
 **Làm gì:**
 ```bat
-cd /d <repo>\dashboard
+cd /d D:\Blockchain\Report_CK\dashboard
 npm run dev
 ```
 Mở trình duyệt (**Chrome có MetaMask**) vào **http://localhost:5173**.
@@ -342,7 +342,7 @@ Mở trình duyệt (**Chrome có MetaMask**) vào **http://localhost:5173**.
 
 **Lệnh cho bước 5** (cmd, khi robot đang LOCKED):
 ```bat
-cd /d <repo>
+cd /d D:\Blockchain\Report_CK
 .venv\Scripts\activate.bat
 python -c "from hrc_backend.chain import ChainClient; ChainClient.from_env('OPERATOR').unlock(1)"
 ```
@@ -352,7 +352,7 @@ python -c "from hrc_backend.chain import ChainClient; ChainClient.from_env('OPER
 
 **Màn "sửa log thì bị phát hiện"** (cửa sổ 5, sau vài phút có dữ liệu):
 ```bat
-cd /d <repo>
+cd /d D:\Blockchain\Report_CK
 .venv\Scripts\activate.bat
 python scripts\tamper_demo.py --db backend\data\hrc_log_hw.sqlite3
 ```
@@ -370,7 +370,7 @@ Mosquitto service **tự bật khi mở máy**. Lần sau chạy mạch thật v
 ### 6.6. Xem ESP32 "nói" gì (Serial Monitor)
 
 ```bat
-cd /d <repo>\iot_code\firmware
+cd /d D:\Blockchain\Report_CK\iot_code\firmware
 ..\..\.pio-venv\Scripts\pio.exe device monitor --port COM9
 ```
 Gõ `s` rồi Enter để xem trạng thái, ví dụ `d=332mm zone=0 estop=0() link=1 ntp=1`. Thoát: `Ctrl+C`. Cổng COM xem trong *Device Manager → Ports* (dòng *Silicon Labs CP210x*).
@@ -393,7 +393,7 @@ Gõ `s` rồi Enter để xem trạng thái, ví dụ `d=332mm zone=0 estop=0() 
 2. **Tắt nguồn 5V servo** (nạp code lúc servo chạy dễ lỗi sụt nguồn).
 3. Tạo lại file bí mật và nạp lại firmware:
    ```bat
-   cd /d <repo>
+   cd /d D:\Blockchain\Report_CK
    .venv\Scripts\activate.bat
    python scripts\make_secrets_h.py --ssid "TenWifi" --password "MatKhau" --mqtt-host 192.168.43.10
    cd iot_code\firmware
