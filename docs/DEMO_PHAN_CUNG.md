@@ -212,8 +212,19 @@ Mở trình duyệt (**Chrome có MetaMask**) vào **http://localhost:5173**.
 | 3 | Đưa tay vào **3–5 cm**, giữ 1–2 giây | **LED đỏ, còi kêu, servo dừng ngay** | **DANGER**. Khoảng 1 s sau: backend `SỰ CỐ robot 1: INTRUSION` → `GHI SỰ CỐ on-chain` → `Gửi LOCK`; dashboard **LOCKED** | **ESP32 tự dừng robot ngay** (fast lane). Sau đó AI xác nhận là người thật, contract ghi sự cố và khóa robot (trust lane) |
 | 4 | Rút tay ra | Servo **vẫn đứng yên**, LED đỏ **nhấp nháy** | vẫn **LOCKED** | Robot bị khóa **trên blockchain**, người rời đi cũng không tự chạy lại |
 | 5 | (tùy chọn) Rút USB ESP32, cắm lại | Vẫn khóa | | Trạng thái khóa lưu trong bộ nhớ flash: rút điện cũng không gỡ được |
+| 5b | Thử mở khóa bằng ví **OPERATOR** (cửa sổ cmd, xem lệnh dưới bảng) | Servo **vẫn đứng yên** | Lỗi `AccessControlUnauthorizedAccount`; vẫn **LOCKED** | **Chỉ SUPERVISOR mở được.** Contract chặn ngay, kể cả người gọi thẳng blockchain (không qua giao diện). Admin cũng bị từ chối |
 | 6 | Bấm **Mở khóa (ký bằng MetaMask)** → **Xác nhận** | 1–2 s sau: relay tách, **servo quay lại** | **ACTIVE**, dòng *"Đã mở khóa – giao dịch 0x…"* | Chỉ SUPERVISOR mở được, và **giao dịch ghi vĩnh viễn ai mở, lúc nào** |
 | 7 | Nhấn nút **E-Stop** | Dừng ngay, còi kêu | relay NGẮT | Dừng khẩn cấp bằng tay; xoay nút nhả ra thì chạy lại sau 1 s SAFE |
+
+**Lệnh cho bước 5b** (cmd, khi robot đang LOCKED):
+```bat
+cd /d D:\Blockchain\Report_CK
+.venv\Scripts\activate.bat
+python -c "from hrc_backend.chain import ChainClient; ChainClient.from_env('OPERATOR').unlock(1)"
+```
+✅ Đúng khi báo `unlock bị từ chối: AccessControlUnauthorizedAccount(account=0x90f7…, …)` và servo không chạy lại. Đã thử trên mạch thật ngày 28/09/2026.
+
+Muốn diễn trên MetaMask: nhập ví OPERATOR (Hardhat #3, khóa thử nghiệm công khai `0x7c852118294e51e653712a81e05800f419141751be58f605c371e15141b007a6`), chọn tài khoản `0x90F7…` rồi kết nối lại dashboard. **Không có** huy hiệu SUPERVISOR, và nút Mở khóa bị mờ.
 
 **Không đưa tay sát dưới 3 cm:** HC-SR04 có vùng mù, quá gần sẽ đo sai. Ngưỡng 5 cm là **thông số trình diễn**, không phải khoảng cách an toàn theo ISO/TS 15066.
 
